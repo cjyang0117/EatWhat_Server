@@ -17,7 +17,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-//你好
+//你好你好
 public class eatwhat {
     private static Thread th_close;                //�銵��
     private static int serverport = 5050;
