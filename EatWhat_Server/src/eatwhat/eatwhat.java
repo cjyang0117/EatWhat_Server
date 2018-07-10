@@ -17,7 +17,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
+//12333333
 public class eatwhat {
     private static Thread th_close;                //執行緒
     private static int serverport = 5050;
@@ -45,7 +45,7 @@ public class eatwhat {
             // TODO Auto-generated method stub
             try {
                 while(true){
-                    Thread.sleep(2001);
+                    Thread.sleep(2000);
                     System.out.println("目前連線數"+socketlist.size());
                     for(int i=0; i<socketlist.size();i++){ //Socket close:socketlist
                         if(isServerClose(socketlist.get(i))) {        //當該客戶端網路斷線時,從SocketList剔除
