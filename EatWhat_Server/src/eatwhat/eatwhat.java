@@ -17,21 +17,21 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-//12333333
+
 public class eatwhat {
-    private static Thread th_close;                //°õ¦æºü
+    private static Thread th_close;                //åŸ·è¡Œç·’
     private static int serverport = 5050;
-    private static ServerSocket serverSocket;    //¦øªAºİªºSocket
+    private static ServerSocket serverSocket;    //ä¼ºæœç«¯çš„Socket
     private static ArrayList<Socket> socketlist=new ArrayList<Socket>();
     public static void main(String[] args){
         try {
-            serverSocket = new ServerSocket(serverport);    //±Ò°ÊServer¶}±ÒPort±µ¤f
-            System.out.println("Server¶}©l°õ¦æ");
-            th_close=new Thread(Judge_Close);                //½á¤©°õ¦æºü¤u§@(§PÂ_socketlist¤º¦³¨S¦³«È¤áºİºô¸ôÂ_½u)
-            th_close.start();                                //Åı°õ¦æºü¶}©l°õ¦æ
-            // ·íServer¹B§@¤¤®É
+            serverSocket = new ServerSocket(serverport);    //å•Ÿå‹•Serveré–‹å•ŸPortæ¥å£
+            System.out.println("Serveré–‹å§‹åŸ·è¡Œ");
+            th_close=new Thread(Judge_Close);                //è³¦äºˆåŸ·è¡Œç·’å·¥ä½œ(åˆ¤æ–·socketlistå…§æœ‰æ²’æœ‰å®¢æˆ¶ç«¯ç¶²è·¯æ–·ç·š)
+            th_close.start();                                //è®“åŸ·è¡Œç·’é–‹å§‹åŸ·è¡Œ
+            // ç•¶Serveré‹ä½œä¸­æ™‚
             while (!serverSocket.isClosed()) {
-                // ©I¥sµ¥«İ±µ¨ü«È¤áºİ³s±µ
+                // å‘¼å«ç­‰å¾…æ¥å—å®¢æˆ¶ç«¯é€£æ¥
                 waitNewSocket();
             }
         } catch (Exception e) {
@@ -39,17 +39,17 @@ public class eatwhat {
             e.printStackTrace();
         }
     }
-    private static Runnable Judge_Close=new Runnable(){    //Åı°õ¦æºü¨C¨â¬í§PÂ_¤@¦¸SocketList¤º¬O§_¦³«È¤áºİ±j¨îÂ_½u
+    private static Runnable Judge_Close=new Runnable(){    //è®“åŸ·è¡Œç·’æ¯å…©ç§’åˆ¤æ–·ä¸€æ¬¡SocketListå…§æ˜¯å¦æœ‰å®¢æˆ¶ç«¯å¼·åˆ¶æ–·ç·š
         @Override
-        public void run() {                                //¦b¦¹§ì¨úªº¬OÃö³¬wifiµ¥Â_½u°Ê§@ 
+        public void run() {                                //åœ¨æ­¤æŠ“å–çš„æ˜¯é—œé–‰wifiç­‰æ–·ç·šå‹•ä½œ 
             // TODO Auto-generated method stub
             try {
                 while(true){
                     Thread.sleep(2000);
-                    System.out.println("¥Ø«e³s½u¼Æ"+socketlist.size());
+                    System.out.println("ç›®å‰é€£ç·šæ•¸"+socketlist.size());
                     for(int i=0; i<socketlist.size();i++){ //Socket close:socketlist
-                        if(isServerClose(socketlist.get(i))) {        //·í¸Ó«È¤áºİºô¸ôÂ_½u®É,±qSocketList­ç°£
-                        	System.out.println("Ãö³¬Socket");
+                        if(isServerClose(socketlist.get(i))) {        //ç•¶è©²å®¢æˆ¶ç«¯ç¶²è·¯æ–·ç·šæ™‚,å¾SocketListå‰”é™¤
+                        	System.out.println("é—œé–‰Socket");
                             socketlist.remove(i);
                         }    
                     }
@@ -60,28 +60,28 @@ public class eatwhat {
             }
         }
     };
-    private static Boolean isServerClose(Socket socket){    //§PÂ_³s½u¬O§_¤¤Â_
+    private static Boolean isServerClose(Socket socket){    //åˆ¤æ–·é€£ç·šæ˜¯å¦ä¸­æ–·
         try{  
-            socket.sendUrgentData(0);        //µo°e¤@­Ó¦r¸`ªººò«æ¼Æ¾Ú,Àq»{±¡ªp¤U¬O¨S¦³¶}±Òºò«æ¼Æ¾Ú³B²z,¤£¼vÅT¥¿±`³s½u
-            return false;                    //¦p¥¿±`«h¦^¶Çfalse
+            socket.sendUrgentData(0);        //ç™¼é€ä¸€å€‹å­—ç¯€çš„ç·Šæ€¥æ•¸æ“š,é»˜èªæƒ…æ³ä¸‹æ˜¯æ²’æœ‰é–‹å•Ÿç·Šæ€¥æ•¸æ“šè™•ç†,ä¸å½±éŸ¿æ­£å¸¸é€£ç·š
+            return false;                    //å¦‚æ­£å¸¸å‰‡å›å‚³false
         }catch(Exception e){
-            return true;                     //¦p³s½u¤¤Â_«h¦^¶Çtrue
+            return true;                     //å¦‚é€£ç·šä¸­æ–·å‰‡å›å‚³true
         }  
     }  
-    // µ¥«İ±µ¨ü«È¤áºİ³s±µ
+    // ç­‰å¾…æ¥å—å®¢æˆ¶ç«¯é€£æ¥
     public static void waitNewSocket() {
         try {
             Socket socket = serverSocket.accept();
-            System.out.println("³s½u¦¨¥\");
-            // ©I¥s³Ğ³y·sªº¨Ï¥ÎªÌ
+            System.out.println("é€£ç·šæˆåŠŸ");
+            // å‘¼å«å‰µé€ æ–°çš„ä½¿ç”¨è€…
             createNewThread(socket);
         } catch (Exception e) {
             e.printStackTrace();
         }
     } 
-    // ³Ğ³y·sªº¨Ï¥ÎªÌ
+    // å‰µé€ æ–°çš„ä½¿ç”¨è€…
     public static void createNewThread(final Socket socket) {
-        // ¥H·sªº°õ¦æºü¨Ó°õ¦æ
+        // ä»¥æ–°çš„åŸ·è¡Œç·’ä¾†åŸ·è¡Œ
         Thread t = new Thread(new Runnable() {
         	BufferedWriter bw;
 			//BufferedWriter bw;
@@ -90,22 +90,22 @@ public class eatwhat {
         	JSONObject json_read,json_write;
         	DB db;
             @Override
-            public void run() { //Server­è±Ò°Ê Appºİ­n¤£¨ì¸ê®Æ!
+            public void run() { //Serverå‰›å•Ÿå‹• Appç«¯è¦ä¸åˆ°è³‡æ–™!
                 try {
-                    // ¼W¥[·sªº¨Ï¥ÎªÌ
+                    // å¢åŠ æ–°çš„ä½¿ç”¨è€…
                     socketlist.add(socket);
-                    //¨ú±oºô¸ô¿é¥X¦ê¬y
+                    //å–å¾—ç¶²è·¯è¼¸å‡ºä¸²æµ
                     bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                    // ¨ú±oºô¸ô¿é¤J¦ê¬y
+                    // å–å¾—ç¶²è·¯è¼¸å…¥ä¸²æµ
                     br = new BufferedReader(new InputStreamReader(socket.getInputStream()));                                   
-                    // ·íSocket¤w³s±µ®É³sÄò°õ¦æ
+                    // ç•¶Socketå·²é€£æ¥æ™‚é€£çºŒåŸ·è¡Œ
                     json_write=new JSONObject();
-                    db=new DB(); //Server¶}¤Ó¤[·|³s¤£¨ìDB!!???? ¥i¯à¬O¤§«e§â«Å§iDB©ñ¦b¤U­± ¤@ª½«Å§iªºÃö«Y
-                	send("sys", "³s½u¦¨¥\");
+                    db=new DB(); //Serveré–‹å¤ªä¹…æœƒé€£ä¸åˆ°DB!!???? å¯èƒ½æ˜¯ä¹‹å‰æŠŠå®£å‘ŠDBæ”¾åœ¨ä¸‹é¢ ä¸€ç›´å®£å‘Šçš„é—œä¿‚
+                	send("sys", "é€£ç·šæˆåŠŸ");
                     while (socket.isConnected()) { 
                     	String x=receive("action");
                     	System.out.println(x);
-                    	if(x.equals("show")) {	//select·í«ü¥O¶°¦X                   	    
+                    	if(x.equals("show")) {	//selectç•¶æŒ‡ä»¤é›†åˆ                   	    
                     	    /*String[] n= {"Sid", "Sname"};
                     	    Boolean[] y= {false, true};
                     	    bw.write(db.SelectTable("Select Sid, Sname from Store", n, y)+"\n");
@@ -141,14 +141,14 @@ public class eatwhat {
                     		json_write=new JSONObject();
                     		if(db.SelectNum()==0) {                  			
                     			json_write.put("Checklogin", false);    
-                    			System.out.println("µL¦¹±b¸¹");
+                    			System.out.println("ç„¡æ­¤å¸³è™Ÿ");
                     		}else {
                     			if(password.equals(tmp.get(0).get(0))) {
                         			json_write.put("Checklogin", true);   
-                        			System.out.println("±b±K¥¿½T");
+                        			System.out.println("å¸³å¯†æ­£ç¢º");
                     			}else {
                         			json_write.put("Checklogin", false);
-                        			System.out.println("µL¦¹±K½X");
+                        			System.out.println("ç„¡æ­¤å¯†ç¢¼");
                     			}
                     		}
                     		bw.write(json_write+"\n");
@@ -172,10 +172,10 @@ public class eatwhat {
                     		//System.out.println("tmp: "+tmp);
                     		if(tmp.indexOf("Account")!=-1) {
                     			json_write.put("check", false);
-                    			json_write.put("data", "³o­Ó±b¸¹¤w¸g¦³¤H¨Ï¥Î");
+                    			json_write.put("data", "é€™å€‹å¸³è™Ÿå·²ç¶“æœ‰äººä½¿ç”¨");
                     		}else if(tmp.indexOf("Mail")!=-1) {
                     			json_write.put("check", false);
-                    			json_write.put("data", "«H½c¤w³Qµù¥U");
+                    			json_write.put("data", "ä¿¡ç®±å·²è¢«è¨»å†Š");
                     		}else {
                     			json_write.put("check", true);
                     		}
@@ -199,26 +199,26 @@ public class eatwhat {
                     		String s="";
                     		switch(typ) {
                     			case 1:
-                    				s="Having (Kind1 like \"%¤ÈÀ\%\" Or Kind1 like \"%±ßÀ\%\") ";
+                    				s="Having (Kind1 like \"%åˆé¤%\" Or Kind1 like \"%æ™šé¤%\") ";
                     				break;
                     			case 2:
-                    				s="Having Kind1 like \"%¦­À\%\" ";
+                    				s="Having Kind1 like \"%æ—©é¤%\" ";
                     				break;
                     			case 3:
-                    				s="Having Kind1 like \"%ÂI¤ß%\" ";
+                    				s="Having Kind1 like \"%é»å¿ƒ%\" ";
                     				break;
                     		}
                     		for(int i=0;i<dont.length();i++) {
                     			s+="And Kind1 not like \"%"+dont.get(i).toString()+"%\" ";
                     		}
-                    		//System.out.println("¦Û¤v©Ò¦b¸g½n«×: "+lat+","+lon);
-                    		//System.out.println("«ü©w¶ZÂ÷: "+dis);
+                    		//System.out.println("è‡ªå·±æ‰€åœ¨ç¶“ç·¯åº¦: "+lat+","+lon);
+                    		//System.out.println("æŒ‡å®šè·é›¢: "+dis);
                     		for(int i=0;i<tmp.size();i++) {	 
                     			String ss=tmp.get(i).get(1);
-                    			//System.out.println("¦a§}: "+ss);
+                    			//System.out.println("åœ°å€: "+ss);
                 				double[] cal=getGPFromAddress(ss);
-                				//System.out.println("¸Ó©±¸g½n«×: "+cal[0]+","+cal[1]);
-                				//System.out.println("¬Û¶Z: "+Distance(cal[0], cal[1], lat, lon));
+                				//System.out.println("è©²åº—ç¶“ç·¯åº¦: "+cal[0]+","+cal[1]);
+                				//System.out.println("ç›¸è·: "+Distance(cal[0], cal[1], lat, lon));
                 				if(Distance(cal[0], cal[1], lat, lon)<=dis) {
                 					int id=Integer.parseInt(tmp.get(i).get(0));     					
                 					String sql="Select Sname, Address, Mname, Price, group_concat(Kkind) as Kind1 from Store, Menu, Storemenu, Menukind, Kind Where Sid="+id+" And Mid=S_mid And Sid=Ssid And K_mid=Mid And M_kid=Kid group by Mname, Price "+s+"Order by Rand() Limit 1";
@@ -233,7 +233,7 @@ public class eatwhat {
                 					}
                 				}
                 				json_write.put("check", false);
-                				json_write.put("data", "½d³ò¤ºµL²Å¦X¤§®Æ²z");
+                				json_write.put("data", "ç¯„åœå…§ç„¡ç¬¦åˆä¹‹æ–™ç†");
                     		}
                     		//System.out.println(json_write.toString());
                     		bw.write(json_write+"\n");
@@ -241,22 +241,22 @@ public class eatwhat {
                     	}else if(x.equals("close")) {               	
                     		socketlist.remove(socket);
                     	}
-                    	//send("sys", "³s½u¦¨¥\");
+                    	//send("sys", "é€£ç·šæˆåŠŸ");
                     	//System.out.println(receive("sys"));
-                        /*tmp = br.readLine();        //«Å§i¤@­Ó½w½Ä,±qbr¦ê¬yÅª¨ú­È
-                        // ¦pªG¤£¬OªÅ°T®§
+                        /*tmp = br.readLine();        //å®£å‘Šä¸€å€‹ç·©è¡,å¾brä¸²æµè®€å–å€¼
+                        // å¦‚æœä¸æ˜¯ç©ºè¨Šæ¯
                         if(tmp!=null){
-                            //±N¨ú¨ìªºString§ì¨ú{}½d³ò¸ê®Æ
+                            //å°‡å–åˆ°çš„StringæŠ“å–{}ç¯„åœè³‡æ–™
                             tmp=tmp.substring(tmp.indexOf("{"), tmp.lastIndexOf("}") + 1);
                             json_read=new JSONObject(tmp);
-                            //±q«È¤áºİ¨ú±o­È«á°µ©î¸Ñ,¥i¨Ï¥Îswitch°µ¤£¦P°Ê§@ªº³B²z»P¦^À³
-                        }else{    //¦b¦¹§ì¨úªº¬O¨Ï¥Î¨Ï¥Î±j¨îÃö³¬appªº«È¤áºİ(·|¤£Â_¶Çnullµ¹server)
-                            //·ísocket±j¨îÃö³¬app®É²¾°£«È¤áºİ
+                            //å¾å®¢æˆ¶ç«¯å–å¾—å€¼å¾Œåšæ‹†è§£,å¯ä½¿ç”¨switchåšä¸åŒå‹•ä½œçš„è™•ç†èˆ‡å›æ‡‰
+                        }else{    //åœ¨æ­¤æŠ“å–çš„æ˜¯ä½¿ç”¨ä½¿ç”¨å¼·åˆ¶é—œé–‰appçš„å®¢æˆ¶ç«¯(æœƒä¸æ–·å‚³nullçµ¦server)
+                            //ç•¶socketå¼·åˆ¶é—œé–‰appæ™‚ç§»é™¤å®¢æˆ¶ç«¯
                             socketlist.remove(socket);
-                            break;    //¸õ¥X°j°éµ²§ô¸Ó°õ¦æºü    
+                            break;    //è·³å‡ºè¿´åœˆçµæŸè©²åŸ·è¡Œç·’    
                         }*/
                     }
-                    System.out.println("¤wÂ_½u");
+                    System.out.println("å·²æ–·ç·š");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }    
@@ -270,14 +270,14 @@ public class eatwhat {
                 tmp=br.readLine();
                 tmp=tmp.substring(tmp.indexOf("{"), tmp.lastIndexOf("}") + 1);
                 json_read=new JSONObject(tmp);
-                return URLDecoder.decode(json_read.getString(n), "utf-8");//¥i¤£¥i¥H°µ¦¨§PÂ_¦¡
+                return URLDecoder.decode(json_read.getString(n), "utf-8");//å¯ä¸å¯ä»¥åšæˆåˆ¤æ–·å¼
             }
-            //¦a§}Âà¸g½n
+            //åœ°å€è½‰ç¶“ç·¯
             public double[] getGPFromAddress(String addr) {
             	try {
         			String tmp = URLEncoder.encode(addr, "UTF-8");       			        			
         			InputStream is = new URL("http://maps.googleapis.com/maps/api/geocode/json?address="+tmp+"&language=zh-tw").openStream();
-        			BufferedReader rd = new BufferedReader(new InputStreamReader(is,"utf-8")); //Á×§K¤¤¤å¶Ã½X°İÃD
+        			BufferedReader rd = new BufferedReader(new InputStreamReader(is,"utf-8")); //é¿å…ä¸­æ–‡äº‚ç¢¼å•é¡Œ
                     StringBuilder sb = new StringBuilder();
                     int cp;
                     while ((cp = rd.read()) != -1) {
@@ -298,7 +298,7 @@ public class eatwhat {
         			return null;
         		}
             }
-            //±a¤J¨Ï¥ÎªÌ¤Î´ºÂI©±®a¸g½n«×¥i­pºâ¥X¶ZÂ÷
+            //å¸¶å…¥ä½¿ç”¨è€…åŠæ™¯é»åº—å®¶ç¶“ç·¯åº¦å¯è¨ˆç®—å‡ºè·é›¢
             public double Distance(double longitude1, double latitude1, double longitude2,double latitude2) {
                 double radLatitude1 = latitude1 * Math.PI / 180;
                 double radLatitude2 = latitude2 * Math.PI / 180;
@@ -313,7 +313,7 @@ public class eatwhat {
                 return distance ;
             }
         });
-        // ±Ò°Ê°õ¦æºü
+        // å•Ÿå‹•åŸ·è¡Œç·’
         t.start();
     }
 }
