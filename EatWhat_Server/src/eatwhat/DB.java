@@ -15,13 +15,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class DB {
-	  private Connection con = null; //³s±µobject 
-	  private Statement stat = null; //°õ¦æ,¶Ç¤J¤§sql¬°§¹¾ã¦r¦ê 
-	  private ResultSet rs = null;   //µ²ªG¶° 
+	  private Connection con = null; //é€£æ¥object 
+	  private Statement stat = null; //åŸ·è¡Œ,å‚³å…¥ä¹‹sqlç‚ºå®Œæ•´å­—ä¸² 
+	  private ResultSet rs = null;   //çµæœé›† 
 	  private PreparedStatement pst = null; 
 	  private int count = 0;
-	  //°õ¦æ,¶Ç¤J¤§sql¬°¹wÀx¤§¦r¥Ó,»İ­n¶Ç¤JÅÜ¼Æ¤§¦ì¸m 
-	  //¥ı§Q¥Î?¨Ó°µ¼Ğ¥Ü 
+	  //åŸ·è¡Œ,å‚³å…¥ä¹‹sqlç‚ºé å„²ä¹‹å­—ç”³,éœ€è¦å‚³å…¥è®Šæ•¸ä¹‹ä½ç½® 
+	  //å…ˆåˆ©ç”¨?ä¾†åšæ¨™ç¤º 
 	  
 	  //private String dropdbSQL = "DROP TABLE User "; 
 	  /*private String createdbSQL = "CREATE TABLE User (" + 
@@ -36,27 +36,27 @@ public class DB {
 		try { 
 		  Class.forName("com.mysql.cj.jdbc.Driver");
 		  //url=jdbc:mysql://localhost:3306/es?autoReconnect=true&useUnicode=true&characterEncoding=utf-8&useSSL=false
-		  //µù¥Udriver 
+		  //è¨»å†Šdriver 
 		  con = DriverManager.getConnection( 
 		  "jdbc:mysql://localhost/eatwhat?useUnicode=true&characterEncoding=Big5&useSSL=false", 
 		  "root","guangzililab"); 
-		  //¨ú±oconnection
+		  //å–å¾—connection
 		 
 		      //jdbc:mysql://localhost/test?useUnicode=true&characterEncoding=Big5
-		  //localhost¬O¥D¾÷¦W,test¬Odatabase¦W
-		  //useUnicode=true&characterEncoding=Big5¨Ï¥Îªº½s½X 
+		  //localhostæ˜¯ä¸»æ©Ÿå,testæ˜¯databaseå
+		  //useUnicode=true&characterEncoding=Big5ä½¿ç”¨çš„ç·¨ç¢¼ 
 		  
 		} 
 		catch(ClassNotFoundException e){ 
 		  System.out.println("DriverClassNotFound :"+e.toString()); 
-		}//¦³¥i¯à·|²£¥Ísqlexception 
+		}//æœ‰å¯èƒ½æœƒç”¢ç”Ÿsqlexception 
 		catch(SQLException x){ 
 		  System.out.println("Exception :"+x.toString()); 
 		} 	    
 	  } 
 	  
-	  //«Ø¥ßtableªº¤è¦¡ 
-	  //¥i¥H¬İ¬İStatementªº¨Ï¥Î¤è¦¡ 
+	  //å»ºç«‹tableçš„æ–¹å¼ 
+	  //å¯ä»¥çœ‹çœ‹Statementçš„ä½¿ç”¨æ–¹å¼ 
 	  /*public void createTable() 
 	  { 
 	    try 
@@ -74,8 +74,8 @@ public class DB {
 	    } 
 	  } */
 	  
-	  //·s¼W¸ê®Æ 
-	  //¥i¥H¬İ¬İPrepareStatementªº¨Ï¥Î¤è¦¡ 
+	  //æ–°å¢è³‡æ–™ 
+	  //å¯ä»¥çœ‹çœ‹PrepareStatementçš„ä½¿ç”¨æ–¹å¼ 
 	  public String insertTable( String a,String n, String p, String m, String um, String ph) 
 	  { 
 	    try 
@@ -101,8 +101,8 @@ public class DB {
 	    } 
 	  }
 	  
-	  //§R°£Table, 
-	  //¸ò«Ø¥ßtable«Ü¹³ 
+	  //åˆªé™¤Table, 
+	  //è·Ÿå»ºç«‹tableå¾ˆåƒ 
 	  /*public void dropTable() 
 	  { 
 	    try 
@@ -120,8 +120,8 @@ public class DB {
 	    } 
 	  } */
 	  
-	  //¬d¸ß¸ê®Æ 
-	  //¥i¥H¬İ¬İ¦^¶Çµ²ªG¶°¤Î¨ú±o¸ê®Æ¤è¦¡ 
+	  //æŸ¥è©¢è³‡æ–™ 
+	  //å¯ä»¥çœ‹çœ‹å›å‚³çµæœé›†åŠå–å¾—è³‡æ–™æ–¹å¼ 
 	  public JSONObject SelectTable(String selectSQL, String[] name, Boolean[] type) throws UnsupportedEncodingException{ 
 	    JSONObject pck=new JSONObject();
 	    JSONArray json_arr=new JSONArray();  
@@ -185,8 +185,8 @@ public class DB {
 		}
 		return tmp;
 	  }
-	  //§¹¾ã¨Ï¥Î§¹¸ê®Æ®w«á,°O±o­nÃö³¬©Ò¦³Object 
-	  //§_«h¦bµ¥«İTimeout®É,¥i¯à·|¦³Connection poorªºª¬ªp 
+	  //å®Œæ•´ä½¿ç”¨å®Œè³‡æ–™åº«å¾Œ,è¨˜å¾—è¦é—œé–‰æ‰€æœ‰Object 
+	  //å¦å‰‡åœ¨ç­‰å¾…Timeoutæ™‚,å¯èƒ½æœƒæœ‰Connection poorçš„ç‹€æ³ 
 	  private void Close(){ 
 	    try{ 
 	      if(rs!=null){ 
@@ -209,7 +209,7 @@ public class DB {
 	
 	/*public static void main(String[] args){
 		System.out.println("hello");
-	    //´ú¬İ¬İ¬O§_¥¿±` 
+	    //æ¸¬çœ‹çœ‹æ˜¯å¦æ­£å¸¸ 
 	    DB test = new DB(); 
 	    String[] x= {"Sid", "Sname", "Address", "Sphone"};
 	    Boolean[] y= {false, true, true, true};
