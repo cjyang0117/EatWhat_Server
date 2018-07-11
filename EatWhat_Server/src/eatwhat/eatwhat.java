@@ -17,7 +17,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-//123
+
 public class eatwhat {
     private static Thread th_close;                //執行緒
     private static int serverport = 5050;
@@ -89,6 +89,7 @@ public class eatwhat {
         	String tmp;
         	JSONObject json_read,json_write;
         	DB db;
+        	String sql1, sql2;
             @Override
             public void run() { //Server剛啟動 App端要不到資料!
                 try {
@@ -213,7 +214,7 @@ public class eatwhat {
                     		}
                     		//System.out.println("自己所在經緯度: "+lat+","+lon);
                     		//System.out.println("指定距離: "+dis);
-                    		for(int i=0;i<tmp.size();i++) {	 
+                    		for(int i=0;i<tmp.size();i++) {	 //取符合距離範圍的店家，且該店家有符合需求之菜色，然後隨機取一道
                     			String ss=tmp.get(i).get(1);
                     			//System.out.println("地址: "+ss);
                 				double[] cal=getGPFromAddress(ss);
@@ -238,6 +239,121 @@ public class eatwhat {
                     		//System.out.println(json_write.toString());
                     		bw.write(json_write+"\n");
                 			bw.flush();
+                    	}else if(x.equals("Question")) {
+                    		JSONArray like=json_read.getJSONArray("Like");
+                    		JSONArray nlike=json_read.getJSONArray("Dont");
+                    		boolean qfirst=json_read.getBoolean("First");
+                    		if(qfirst) {
+                    			sql1=""; sql2=""; 
+                    			System.out.println("第零次提問推薦");
+                    			String n[]= {"Sid", "Address"};
+                        		Boolean y[]= {false, true};
+                        		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n, y);
+                        		double lon=json_read.getDouble("Longitude");
+                        		double lat=json_read.getDouble("Latitude");
+                        		double dis=json_read.getDouble("Distlimit");
+                        		int count=0;
+                        		int[] id=new int[30];
+                        		
+                        		for(int i=0;i<tmp.size();i++) { //取符合距離範圍的店家最多30筆
+                        			double[] cal=getGPFromAddress(tmp.get(i).get(1));
+                        			if(Distance(cal[0], cal[1], lat, lon)<=dis) {
+                        				id[count]=Integer.parseInt(tmp.get(i).get(0));
+                        				count++;                    				
+                        				if(count==30) break;
+                        			}
+                        			Thread.sleep(1);
+                        		}
+                        		System.out.println("符合距離範圍的店家: "+count);
+                        		if(count!=0) {
+	                        		sql1="Select Sname, Address, Mname, Price, group_concat(Kkind) as Kind1 from Store, Menu, Storemenu, Menukind, Kind Where (";
+	                        		for(int i=0;i<count;i++) {
+	                        			sql1+="Sid="+id[i];
+	                        			if(i!=count-1) {
+	                        				sql1+=" Or ";
+	                        			}else {
+	                        				sql1+=") And Mid=S_mid And Sid=Ssid And K_mid=Mid And M_kid=Kid group by Sname, Address, Mname, Price ";
+	                        			}
+	                        		}
+	                        		int typ=json_read.getInt("Eatype");
+	                        		switch(typ) {
+		                    			case 1:
+		                    				sql1+="Having Kind1 like \"%早餐%\" ";
+		                    				break;
+		                    			case 2:
+		                    				sql1+="Having Kind1 like \"%點心%\" ";
+		                    				break;
+		                    			case 3:
+		                    				sql1+="Having (Kind1 like \"%午餐%\" Or Kind1 like \"%晚餐%\") ";
+		                    				break;
+		                    			case 4:
+		                    				sql1+="Having Kind1 like \"%宵夜%\" ";
+		                    				break;
+	                        		}
+	                        		if(!nlike.get(0).toString().equals("false")) {
+		                        		for(int i=0;i<nlike.length();i++) {
+		    	                			sql1+="And Kind1 not like \"%"+nlike.get(i).toString()+"%\" ";
+		    	                		}
+	                        		}
+	                        		if(!like.get(0).toString().equals("false")) {
+		                        		sql2="And (";
+		                        		for(int i=0;i<like.length();i++) {
+		                        			sql2+="Kind1 like \"%"+like.get(i).toString()+"%\" ";
+		                        			if(i!=like.length()-1) {
+		    	                				sql2+="Or ";
+		    	                			}else {
+		    	                				sql2+=") ";
+		    	                			}
+		                        		}
+	                        		}
+	                        		String n1[]= {"Sname", "Address", "Mname", "Price", "Kind1"};
+	                        		Boolean y1[]= {true, true, true, true, true, true};
+	                        		JSONObject jj=db.SelectTable(sql1+sql2+"Order by Rand() Limit 3", n1, y1);
+	                        		if(db.SelectNum()!=0) {
+		                        		jj.put("check", true);
+		                        		bw.write(jj+"\n");
+		                        		bw.flush();
+		                        		System.out.println("sql: "+sql1+sql2+"Order by Rand() Limit 3");
+		                        		System.out.println("jj: "+jj.toString());
+	                        		}else {
+	                        			json_write.put("check", false);
+	                    				json_write.put("data", "範圍內無符合之料理");
+	                        		}                    		
+                        		}else {
+                        			json_write.put("check", false);
+                    				json_write.put("data", "範圍內無符合之料理");
+                        		}
+                    		}else {
+                    			if(!nlike.get(0).toString().equals("false")) {
+	                        		for(int i=0;i<nlike.length();i++) {
+	    	                			sql1+="And Kind1 not like \"%"+nlike.get(i).toString()+"%\" ";
+	    	                		}
+                    			}
+                    			if(!like.get(0).toString().equals("false")) {
+	                        		sql2=sql2.substring(0, sql2.indexOf(")"))+"Or ";
+	                        		for(int i=0;i<like.length();i++) {
+	                        			sql2+="Kind1 like \"%"+like.get(i).toString()+"%\" ";
+	                        			if(i!=like.length()-1) {
+	    	                				sql2+="Or ";
+	    	                			}else {
+	    	                				sql2+=") ";
+	    	                			}
+	                        		}
+                    			}
+                        		String n1[]= {"Sname", "Address", "Mname", "Price", "Kind1"};
+                        		Boolean y1[]= {true, true, true, true, true, true};
+                        		JSONObject jj=db.SelectTable(sql1+sql2+"Order by Rand() Limit 3", n1, y1);
+                        		if(db.SelectNum()!=0) {
+                        			jj.put("check", true);
+	                        		bw.write(jj+"\n");
+	                        		bw.flush(); 
+	                        		System.out.println("sql: "+sql1+sql2+"Order by Rand() Limit 3");
+	                        		System.out.println("jj2: "+jj.toString());
+                        		}else {
+                        			json_write.put("check", false);
+                    				json_write.put("data", "範圍內無符合之料理");
+                        		}
+                    		}                    		                    		                  		
                     	}else if(x.equals("close")) {               	
                     		socketlist.remove(socket);
                     	}
@@ -277,6 +393,7 @@ public class eatwhat {
             	try {
         			String tmp = URLEncoder.encode(addr, "UTF-8");       			        			
         			InputStream is = new URL("http://maps.googleapis.com/maps/api/geocode/json?address="+tmp+"&language=zh-tw").openStream();
+        			//System.out.println("http://maps.googleapis.com/maps/api/geocode/json?address="+tmp+"&language=zh-tw");
         			BufferedReader rd = new BufferedReader(new InputStreamReader(is,"utf-8")); //避免中文亂碼問題
                     StringBuilder sb = new StringBuilder();
                     int cp;
