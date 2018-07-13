@@ -122,7 +122,7 @@ public class DB {
 	  
 	  //查詢資料 
 	  //可以看看回傳結果集及取得資料方式 
-	  public JSONObject SelectTable(String selectSQL, String[] name, Boolean[] type) throws UnsupportedEncodingException{ 
+	  public JSONObject SelectTable(String selectSQL, String[] name) throws UnsupportedEncodingException{ 
 	    JSONObject pck=new JSONObject();
 	    JSONArray json_arr=new JSONArray();  
 		
@@ -134,11 +134,7 @@ public class DB {
 	    	  count++;
 	    	  String[] tmp=new String[name.length];
 	    	  for(int i=0;i<name.length;i++) {
-	    		  if(type[i]) {
-	    			  tmp[i]=rs.getString(name[i]);
-	    		  }else {
-	    			  tmp[i]=String.valueOf(rs.getInt(name[i]));
-	    		  }
+	    		  tmp[i]=rs.getString(name[i]);
 	    		  tmp[i]=URLEncoder.encode(tmp[i], "utf-8");
 	    	  }
 	    	  json_arr.put(tmp);
@@ -146,7 +142,8 @@ public class DB {
 	      pck.put("data", json_arr);	
 	    } 
 	    catch(SQLException e){ 
-	      System.out.println("DropDB Exception :" + e.toString()); 
+	      System.out.println("SelectTable Exception :" + e.toString()); 
+	      pck.put("data", e.toString());
 	    } 
 	    finally{
 	      Close();	      
@@ -156,8 +153,7 @@ public class DB {
 	  public int SelectNum() {
 		  return count;
 	  }
-	  public ArrayList<ArrayList<String>> SelectTable2(String selectSQL, String[] name, Boolean[] type) throws UnsupportedEncodingException{ 
-		//String[] tmp=new String[name.length];
+	  public ArrayList<ArrayList<String>> SelectTable2(String selectSQL, String[] name) throws UnsupportedEncodingException{ 
 		ArrayList<ArrayList<String>> tmp = new ArrayList<ArrayList<String>>();		 
 		try{ 
 		  stat = con.createStatement(); 
@@ -166,19 +162,13 @@ public class DB {
 		  while(rs.next()) {	  
 			  tmp.add(new ArrayList<String>());
 			  for(int i=0;i<name.length;i++) {
-				  if(type[i]) {
-					  //tmp[i]=rs.getString(name[i]);
-					  tmp.get(count).add(rs.getString(name[i]));
-				  }else {
-					  //tmp[i]=String.valueOf(rs.getInt(name[i]));
-					  tmp.get(count).add(String.valueOf(rs.getInt(name[i])));
-				  }
+				  tmp.get(count).add(rs.getString(name[i]));
 			  }
 			  count++;
 		  }	
 		} 
 		catch(SQLException e){ 
-		  System.out.println("DropDB Exception :" + e.toString()); 
+		  System.out.println("SelectTable2 Exception :" + e.toString()); 
 		} 
 		finally{
 		  Close();	      
