@@ -110,27 +110,23 @@ public class eatwhat {
                     	if(x.equals("show")) {	//select當指令集合                 
                     		String name=json_read.getString("data");
                     		String[] n= {"Sid", "Sname"};
-                    	    Boolean[] y= {false, true};
-                    	    bw.write(db.SelectTable("Select Sid, Sname from Store where Sname like \"%"+name+"%\"", n, y)+"\n");
+                    	    bw.write(db.SelectTable("Select Sid, Sname from Store where Sname like \"%"+name+"%\"", n)+"\n");
                             bw.flush();
                     	}else if(x.equals("show1")) {
                     		int id=json_read.getInt("data");         
                     		String[] n= {"Mname", "Price"};
-                    	    Boolean[] y= {true, false};
-                    	    bw.write(db.SelectTable("Select Mname, Price from Store, Menu, Storemenu Where Sid="+id+" And Mid=S_mid And Sid=Ssid", n, y)+"\n");
+                    	    bw.write(db.SelectTable("Select Mname, Price from Store, Menu, Storemenu Where Sid="+id+" And Mid=S_mid And Sid=Ssid", n)+"\n");
                             bw.flush();
                     	}else if(x.equals("show2")) {
                     		String name=json_read.getString("data");
                     		String[] n= {"Sid", "Sname", "Mname", "Price"}; 
-                    	    Boolean[] y= {false, true, true, false}; 
-                    	    bw.write(db.SelectTable("Select Sid, Sname, Mname, Price from Store, Menu, Storemenu Where Mname like \"%"+name+"%\" And Mid=S_mid And Sid=Ssid", n, y)+"\n");                 	    
+                    	    bw.write(db.SelectTable("Select Sid, Sname, Mname, Price from Store, Menu, Storemenu Where Mname like \"%"+name+"%\" And Mid=S_mid And Sid=Ssid", n)+"\n");                 	    
                     	    bw.flush();
                     	}else if(x.equals("login")) {                 
                     		String account=json_read.getString("Account");
                     		String password=json_read.getString("Password");
                     		String[] n= {"Password"};
-                    		Boolean[] y= {true};
-                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Password from User Where Account=\""+account+"\"", n, y);
+                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Password from User Where Account=\""+account+"\"", n);
                     		json_write=new JSONObject();
                     		if(db.SelectNum()==0) {                  			
                     			json_write.put("Checklogin", false);    
@@ -173,9 +169,11 @@ public class eatwhat {
                     		bw.write(json_write+"\n");
                 			bw.flush();
                     	}else if(x.equals("Random")) {
-                    		String n[]= {"Sid", "Address"};
-                    		Boolean y[]= {false, true};
-                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n, y); //Select Sid, Address From Store  Order By Rand() Limit 100
+                    		//String n[]= {"Sid", "Address"};
+                    		String n[]= {"Sid", "Address", "lng", "lat"};
+                    		//Boolean y[]= {false, true};
+                    		//ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n, y); //Select Sid, Address From Store  Order By Rand() Limit 100
+                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address, lng, lat From Store Order By Rand()", n);
                     		ArrayList<ArrayList<String>> tmp2;
                     		double lon=json_read.getDouble("Longitude");
                     		double lat=json_read.getDouble("Latitude");
@@ -183,13 +181,12 @@ public class eatwhat {
                     		int typ=json_read.getInt("Eatype");
                     		JSONArray dont=json_read.getJSONArray("Dontwant");
                     		String n1[]= {"Sname", "Address", "Mname", "Price", "Kind1"};
-                    		Boolean y1[]= {true, true, true, true, true, true};
                     		json_write=new JSONObject();
                     		
                     		String s="";
                     		switch(typ) {
                     			case 1:
-                    				s="Having (Kind1 like \"%午餐%\" Or Kind1 like \"%晚餐%\") ";
+                    				s="Having Kind1 like \"%正餐%\" ";
                     				break;
                     			case 2:
                     				s="Having Kind1 like \"%早餐%\" ";
@@ -204,16 +201,19 @@ public class eatwhat {
                     		//System.out.println("自己所在經緯度: "+lat+","+lon);
                     		//System.out.println("指定距離: "+dis);
                     		for(int i=0;i<tmp.size();i++) {	 //取符合距離範圍的店家，且該店家有符合需求之菜色，然後隨機取一道
-                    			String ss=tmp.get(i).get(1);
+                    			//String ss=tmp.get(i).get(1);
                     			//System.out.println("地址: "+ss);
-                				double[] cal=getGPFromAddress(ss);
+                				//double[] cal=getGPFromAddress(ss);
                 				//System.out.println("該店經緯度: "+cal[0]+","+cal[1]);
                 				//System.out.println("相距: "+Distance(cal[0], cal[1], lat, lon));
-                				if(Distance(cal[0], cal[1], lat, lon)<=dis) {
+                				//if(Distance(cal[0], cal[1], lat, lon)<=dis) {
+                    			Double ttt=Distance(Double.parseDouble(tmp.get(i).get(3)), Double.parseDouble(tmp.get(i).get(2)), lat, lon);
+                    			System.out.println("相距: "+ttt+" dis: "+dis);
+                    			if(ttt<=dis) {
                 					int id=Integer.parseInt(tmp.get(i).get(0));     					
                 					String sql="Select Sname, Address, Mname, Price, group_concat(Kkind) as Kind1 from Store, Menu, Storemenu, Menukind, Kind Where Sid="+id+" And Mid=S_mid And Sid=Ssid And K_mid=Mid And M_kid=Kid group by Mname, Price "+s+"Order by Rand() Limit 1";
                 					System.out.println("sql: "+sql);
-                					tmp2=db.SelectTable2(sql, n1, y1);
+                					tmp2=db.SelectTable2(sql, n1);
                 					if(db.SelectNum()==0) {
                 						continue;
                 					}else {
@@ -236,16 +236,15 @@ public class eatwhat {
                     			sql1=""; sql2=""; 
                     			System.out.println("第零次提問推薦");
                     			String n[]= {"Sid", "Address"};
-                        		Boolean y[]= {false, true};
-                        		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n, y);
+                        		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n);
                         		double lon=json_read.getDouble("Longitude");
                         		double lat=json_read.getDouble("Latitude");
                         		double dis=json_read.getDouble("Distlimit");
                         		int count=0;
                         		int[] id=new int[30];
                         		
-                        		for(int i=0;i<tmp.size();i++) { //取符合距離範圍的店家最多30筆
-                        			double[] cal=getGPFromAddress(tmp.get(i).get(1));
+                        		for(int i=0;i<tmp.size();i++) { //取符合距離範圍的店家最多30筆  
+                        			double[] cal=getGPFromAddress(tmp.get(i).get(1)); //經緯度計算方式以修改
                         			if(Distance(cal[0], cal[1], lat, lon)<=dis) {
                         				id[count]=Integer.parseInt(tmp.get(i).get(0));
                         				count++;                    				
@@ -296,8 +295,7 @@ public class eatwhat {
 		                        		}
 	                        		}
 	                        		String n1[]= {"Sname", "Address", "Mname", "Price", "Kind1"};
-	                        		Boolean y1[]= {true, true, true, true, true, true};
-	                        		JSONObject jj=db.SelectTable(sql1+sql2+"Order by Rand() Limit 3", n1, y1);
+	                        		JSONObject jj=db.SelectTable(sql1+sql2+"Order by Rand() Limit 3", n1);
 	                        		if(db.SelectNum()!=0) {
 		                        		jj.put("check", true);
 		                        		bw.write(jj+"\n");
@@ -334,8 +332,7 @@ public class eatwhat {
 	                        		}
                     			}
                         		String n1[]= {"Sname", "Address", "Mname", "Price", "Kind1"};
-                        		Boolean y1[]= {true, true, true, true, true, true};
-                        		JSONObject jj=db.SelectTable(sql1+sql2+"Order by Rand() Limit 3", n1, y1);
+                        		JSONObject jj=db.SelectTable(sql1+sql2+"Order by Rand() Limit 3", n1);
                         		if(db.SelectNum()!=0) {
                         			jj.put("check", true);
 	                        		bw.write(jj+"\n");
@@ -358,17 +355,22 @@ public class eatwhat {
                     			db.createTable("Drop table IF EXISTS Kind2");
                     			sql1=""; sql2=""; qcount=0;
                     			System.out.println("第零次提問推薦");
-                    			String n[]= {"Sid", "Address"};
-                        		Boolean y[]= {false, true};
-                        		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n, y);
+                    			//String n[]= {"Sid", "Address"};
+                    			String n[]= {"Sid", "Address", "lng", "lat"};
+                        		//Boolean y[]= {false, true};
+                        		//ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n, y);
+                        		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address, lng, lat From Store Order By Rand()", n);
                         		double lon=json_read.getDouble("Longitude");
                         		double lat=json_read.getDouble("Latitude");
                         		double dis=json_read.getDouble("Distlimit");
                         		int[] id=new int[30];
                         		
                         		for(int i=0;i<tmp.size();i++) { //取符合距離範圍的店家最多30筆
-                        			double[] cal=getGPFromAddress(tmp.get(i).get(1));
-                        			if(Distance(cal[0], cal[1], lat, lon)<=dis) {
+                        			//double[] cal=getGPFromAddress(tmp.get(i).get(1));
+                        			//if(Distance(cal[0], cal[1], lat, lon)<=dis) {
+                        			Double ttt=Distance(Double.parseDouble(tmp.get(i).get(3)), Double.parseDouble(tmp.get(i).get(2)), lat, lon);
+                        			System.out.println("相距: "+ttt);
+                        			if(ttt<=dis) {	
                         				id[qcount]=Integer.parseInt(tmp.get(i).get(0));
                         				qcount++;                    				
                         				if(qcount==30) break;
@@ -456,18 +458,16 @@ public class eatwhat {
 	                    		//String n1[]= {"Sname", "Address", "Mname", "Price", "P"};
 	                    		String n1[]= {"Mid", "Mname", "Price", "P"};
 	                    		//Boolean y1[]= {true, true, true, true, true, true};
-	                    		Boolean y1[]= {true, true, true, true};
 	                    		//ArrayList<ArrayList<String>> jj=db.SelectTable2(sql1+sql2, n1, y1);
 	                    		db.createTable(sql1+sql2);
-	                    		ArrayList<ArrayList<String>> jj=db.SelectTable2("Select *from Kind3 group by Mid, Mname, Price, P Limit 3", n1, y1);
+	                    		ArrayList<ArrayList<String>> jj=db.SelectTable2("Select *from Kind3 group by Mid, Mname, Price, P Limit 3", n1);
 	                    		
 	                    		if(db.SelectNum()!=0) {
 	                    			String n2[]= {"Sname", "Address"};
-		                    		Boolean y2[]= {true, true};
 	                    			for(int i=0;i<3;i++) {
 		                    			//re[i]=jj.get(i).get(2);
 		                    			re[i]=jj.get(i).get(1);
-		                    			json_write.put("A"+i, db.SelectTable2("Select Sname, Address from Store, Storemenu, Menu where Sid=Ssid And Mid=S_mid And Mid="+jj.get(i).get(0), n2, y2));
+		                    			json_write.put("A"+i, db.SelectTable2("Select Sname, Address from Store, Storemenu, Menu where Sid=Ssid And Mid=S_mid And Mid="+jj.get(i).get(0), n2));
 		                    		}
 	                    			
 	                    			json_write.put("check", true);
