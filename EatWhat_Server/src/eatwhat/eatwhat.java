@@ -169,10 +169,7 @@ public class eatwhat {
                     		bw.write(json_write+"\n");
                 			bw.flush();
                     	}else if(x.equals("Random")) {
-                    		//String n[]= {"Sid", "Address"};
                     		String n[]= {"Sid", "Address", "lng", "lat"};
-                    		//Boolean y[]= {false, true};
-                    		//ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n, y); //Select Sid, Address From Store  Order By Rand() Limit 100
                     		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address, lng, lat From Store Order By Rand()", n);
                     		ArrayList<ArrayList<String>> tmp2;
                     		double lon=json_read.getDouble("Longitude");
@@ -198,15 +195,7 @@ public class eatwhat {
                     		for(int i=0;i<dont.length();i++) {
                     			s+="And Kind1 not like \"%"+dont.get(i).toString()+"%\" ";
                     		}
-                    		//System.out.println("自己所在經緯度: "+lat+","+lon);
-                    		//System.out.println("指定距離: "+dis);
                     		for(int i=0;i<tmp.size();i++) {	 //取符合距離範圍的店家，且該店家有符合需求之菜色，然後隨機取一道
-                    			//String ss=tmp.get(i).get(1);
-                    			//System.out.println("地址: "+ss);
-                				//double[] cal=getGPFromAddress(ss);
-                				//System.out.println("該店經緯度: "+cal[0]+","+cal[1]);
-                				//System.out.println("相距: "+Distance(cal[0], cal[1], lat, lon));
-                				//if(Distance(cal[0], cal[1], lat, lon)<=dis) {
                     			Double ttt=Distance(Double.parseDouble(tmp.get(i).get(3)), Double.parseDouble(tmp.get(i).get(2)), lat, lon);
                     			System.out.println("相距: "+ttt+" dis: "+dis);
                     			if(ttt<=dis) {
@@ -225,16 +214,15 @@ public class eatwhat {
                 				json_write.put("check", false);
                 				json_write.put("data", "範圍內無符合之料理");
                     		}
-                    		//System.out.println(json_write.toString());
                     		bw.write(json_write+"\n");
                 			bw.flush();
-                    	}else if(x.equals("Question")) {
+                    	}else if(x.equals("Question")) { //1.0廢棄
                     		JSONArray like=json_read.getJSONArray("Like");
                     		JSONArray nlike=json_read.getJSONArray("Dont");
                     		boolean qfirst=json_read.getBoolean("First");
                     		if(qfirst) {
                     			sql1=""; sql2=""; 
-                    			System.out.println("第零次提問推薦");
+                    			System.out.println("第1次提問推薦");
                     			String n[]= {"Sid", "Address"};
                         		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n);
                         		double lon=json_read.getDouble("Longitude");
@@ -354,11 +342,8 @@ public class eatwhat {
                     		if(qfirst) {
                     			db.createTable("Drop table IF EXISTS Kind2");
                     			sql1=""; sql2=""; qcount=0;
-                    			System.out.println("第零次提問推薦");
-                    			//String n[]= {"Sid", "Address"};
+                    			System.out.println("第1次提問推薦");
                     			String n[]= {"Sid", "Address", "lng", "lat"};
-                        		//Boolean y[]= {false, true};
-                        		//ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n, y);
                         		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address, lng, lat From Store Order By Rand()", n);
                         		double lon=json_read.getDouble("Longitude");
                         		double lat=json_read.getDouble("Latitude");
@@ -366,8 +351,6 @@ public class eatwhat {
                         		int[] id=new int[30];
                         		
                         		for(int i=0;i<tmp.size();i++) { //取符合距離範圍的店家最多30筆
-                        			//double[] cal=getGPFromAddress(tmp.get(i).get(1));
-                        			//if(Distance(cal[0], cal[1], lat, lon)<=dis) {
                         			Double ttt=Distance(Double.parseDouble(tmp.get(i).get(3)), Double.parseDouble(tmp.get(i).get(2)), lat, lon);
                         			System.out.println("相距: "+ttt);
                         			if(ttt<=dis) {	
@@ -381,8 +364,6 @@ public class eatwhat {
                         		if(qcount!=0) {
                         			db.createTable("CREATE TEMPORARY TABLE Kind2 (Kid INT(6) NOT NULL AUTO_INCREMENT, Kkind CHAR(10), Prefer INT(6) default 0, PRIMARY KEY(Kid)) ENGINE=INNODB DEFAULT CHARSET=utf8");
                         			db.createTable("Insert into Kind2 (Kid, Kkind) Select Kid, Kkind from Kind");
-	                        		
-                        			//sql1="Select Sname, Address, Mname, Price, SUM(Prefer) as P from Store, Storemenu, Menu, Menukind, Kind2 where (";
                         			sql1="Create TEMPORARY TABLE Kind3 As Select Mid, Mname, Price, SUM(Prefer) as P from Store, Storemenu, Menu, Menukind, Kind2 where (";
                             		for(int i=0;i<qcount;i++) {
                             			sql1+="Sid="+id[i];
@@ -392,7 +373,6 @@ public class eatwhat {
                             				sql1+=") ";
                             			}
                             		}
-                            		//sql2="And K_mid=Mid And M_kid=Kid And Mid=S_mid And Sid=Ssid group by Sname, Address, Price, Mname Order by P DESC Limit 3";
                             		sql2="And K_mid=Mid And M_kid=Kid And Mid=S_mid And Sid=Ssid group by Sname, Mid, Price, Mname Having P>100 Order by P DESC, Rand() Limit 10";
                             		String sql="Update Kind2 set Prefer=100 where ";
                             		int typ=json_read.getInt("Eatype");
@@ -454,22 +434,16 @@ public class eatwhat {
 	                        		System.out.println(sql);
 		                    		db.createTable(sql);
 	                    		}        
-	                    		
-	                    		//String n1[]= {"Sname", "Address", "Mname", "Price", "P"};
 	                    		String n1[]= {"Mid", "Mname", "Price", "P"};
-	                    		//Boolean y1[]= {true, true, true, true, true, true};
-	                    		//ArrayList<ArrayList<String>> jj=db.SelectTable2(sql1+sql2, n1, y1);
 	                    		db.createTable(sql1+sql2);
 	                    		ArrayList<ArrayList<String>> jj=db.SelectTable2("Select *from Kind3 group by Mid, Mname, Price, P Limit 3", n1);
 	                    		
 	                    		if(db.SelectNum()!=0) {
 	                    			String n2[]= {"Sname", "Address"};
 	                    			for(int i=0;i<3;i++) {
-		                    			//re[i]=jj.get(i).get(2);
 		                    			re[i]=jj.get(i).get(1);
 		                    			json_write.put("A"+i, db.SelectTable2("Select Sname, Address from Store, Storemenu, Menu where Sid=Ssid And Mid=S_mid And Mid="+jj.get(i).get(0), n2));
 		                    		}
-	                    			
 	                    			json_write.put("check", true);
 	                        		json_write.put("data", jj);
 	                        		db.createTable("Drop table Kind3");
@@ -519,12 +493,11 @@ public class eatwhat {
                 json_read=new JSONObject(tmp);
                 return URLDecoder.decode(json_read.getString(n), "utf-8");//可不可以做成判斷式
             }
-          //地址轉經緯
-            public double[] getGPFromAddress(String addr) {
+            //地址轉經緯
+            public double[] getGPFromAddress(String addr) { //該服務不能一次太頻繁的請求，不然會OVER_QUERY_LIMIT
             	try {
         			String tmp = URLEncoder.encode(addr, "UTF-8");       			        			
         			InputStream is = new URL("http://maps.googleapis.com/maps/api/geocode/json?address="+tmp+"&language=zh-tw").openStream();
-        			System.out.println("http://maps.googleapis.com/maps/api/geocode/json?address="+tmp+"&language=zh-tw");
         			BufferedReader rd = new BufferedReader(new InputStreamReader(is,"utf-8")); //避免中文亂碼問題
                     StringBuilder sb = new StringBuilder();
                     int cp;
@@ -537,8 +510,6 @@ public class eatwhat {
                     json=json.getJSONObject("geometry");
                     json=json.getJSONObject("location");   
                     double r[]= {json.getDouble("lat"), json.getDouble("lng")};
-                    //System.out.println(json.getDouble("lat"));
-                    //System.out.println(json.getDouble("lng"));
                     return r;
         		} catch (Exception e) {
         			// TODO Auto-generated catch block
