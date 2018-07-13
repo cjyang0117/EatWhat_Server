@@ -84,14 +84,15 @@ public class eatwhat {
         // 以新的執行緒來執行
         Thread t = new Thread(new Runnable() {
         	BufferedWriter bw;
-			//BufferedWriter bw;
         	BufferedReader br;
         	String tmp;
         	JSONObject json_read,json_write;
         	DB db;
         	String sql1, sql2;
+        	String[] re=new String[3];
+        	int qcount=0;
             @Override
-            public void run() { //Server剛啟動 App端要不到資料!
+            public void run() { //Server剛啟動 App端要不到資料! 應該是解決了
                 try {
                     // 增加新的使用者
                     socketlist.add(socket);
@@ -101,16 +102,12 @@ public class eatwhat {
                     br = new BufferedReader(new InputStreamReader(socket.getInputStream()));                                   
                     // 當Socket已連接時連續執行
                     json_write=new JSONObject();
-                    db=new DB(); //Server開太久會連不到DB!!???? 可能是之前把宣告DB放在下面 一直宣告的關係
+                    db=new DB(); //Server開太久會連不到DB!!???? 可能是之前把宣告DB放在下面 一直宣告的關係  應該沒問題了
                 	send("sys", "連線成功");
                     while (socket.isConnected()) { 
                     	String x=receive("action");
                     	System.out.println(x);
                     	if(x.equals("show")) {	//select當指令集合                 
-                    	    /*String[] n= {"Sid", "Sname"};
-                    	    Boolean[] y= {false, true};
-                    	    bw.write(db.SelectTable("Select Sid, Sname from Store", n, y)+"\n");
-                            bw.flush();*/
                     		String name=json_read.getString("data");
                     		String[] n= {"Sid", "Sname"};
                     	    Boolean[] y= {false, true};
@@ -123,15 +120,10 @@ public class eatwhat {
                     	    bw.write(db.SelectTable("Select Mname, Price from Store, Menu, Storemenu Where Sid="+id+" And Mid=S_mid And Sid=Ssid", n, y)+"\n");
                             bw.flush();
                     	}else if(x.equals("show2")) {
-                    		/*String[] n= {"Sname", "Mname", "Price"}; 
-                    	    Boolean[] y= {true, true, false}; 
-                    	    bw.write(db.SelectTable("Select Sname, Mname, Price from Store, Menu, Storemenu Where Mid=S_mid And Sid=Ssid", n, y)+"\n");
-                            bw.flush();*/
                     		String name=json_read.getString("data");
                     		String[] n= {"Sid", "Sname", "Mname", "Price"}; 
                     	    Boolean[] y= {false, true, true, false}; 
-                    	    bw.write(db.SelectTable("Select Sid, Sname, Mname, Price from Store, Menu, Storemenu Where Mname like \"%"+name+"%\" And Mid=S_mid And Sid=Ssid", n, y)+"\n");
-                    	    //bw.write(db.SelectTable("Select Sid, Sname, Mname, Price from FFF2", n, y)+"\n");
+                    	    bw.write(db.SelectTable("Select Sid, Sname, Mname, Price from Store, Menu, Storemenu Where Mname like \"%"+name+"%\" And Mid=S_mid And Sid=Ssid", n, y)+"\n");                 	    
                     	    bw.flush();
                     	}else if(x.equals("login")) {                 
                     		String account=json_read.getString("Account");
@@ -167,10 +159,8 @@ public class eatwhat {
                     		System.out.println(mail);
                     		System.out.println(uname);
                     		System.out.println(phone);
-                    		//String account="asdfff"; String name="123"; String password="123"; String mail="tyuffi"; String uname="123"; String phone="123";
                     		json_write=new JSONObject();
                     		String tmp=db.insertTable(account, name, password, mail, uname, phone);
-                    		//System.out.println("tmp: "+tmp);
                     		if(tmp.indexOf("Account")!=-1) {
                     			json_write.put("check", false);
                     			json_write.put("data", "這個帳號已經有人使用");
@@ -194,7 +184,6 @@ public class eatwhat {
                     		JSONArray dont=json_read.getJSONArray("Dontwant");
                     		String n1[]= {"Sname", "Address", "Mname", "Price", "Kind1"};
                     		Boolean y1[]= {true, true, true, true, true, true};
-                    		//ArrayList<String> dont=(ArrayList<String>)json_read.get("Dontwant");
                     		json_write=new JSONObject();
                     		
                     		String s="";
@@ -284,7 +273,7 @@ public class eatwhat {
 		                    				sql1+="Having Kind1 like \"%點心%\" ";
 		                    				break;
 		                    			case 3:
-		                    				sql1+="Having (Kind1 like \"%午餐%\" Or Kind1 like \"%晚餐%\") ";
+		                    				sql1+="Having Kind1 like \"%正餐%\" ";
 		                    				break;
 		                    			case 4:
 		                    				sql1+="Having Kind1 like \"%宵夜%\" ";
@@ -318,10 +307,14 @@ public class eatwhat {
 	                        		}else {
 	                        			json_write.put("check", false);
 	                    				json_write.put("data", "範圍內無符合之料理");
+	                    				bw.write(json_write+"\n");
+		                        		bw.flush();
 	                        		}                    		
                         		}else {
                         			json_write.put("check", false);
                     				json_write.put("data", "範圍內無符合之料理");
+                    				bw.write(json_write+"\n");
+	                        		bw.flush();
                         		}
                     		}else {
                     			if(!nlike.get(0).toString().equals("false")) {
@@ -352,8 +345,146 @@ public class eatwhat {
                         		}else {
                         			json_write.put("check", false);
                     				json_write.put("data", "範圍內無符合之料理");
+                    				bw.write(json_write+"\n");
+	                        		bw.flush();
                         		}
                     		}                    		                    		                  		
+                    	}else if(x.equals("Question2")) {
+                      		JSONArray like=json_read.getJSONArray("Like");
+                      		JSONArray normal=json_read.getJSONArray("Soso");
+                      		JSONArray nlike=json_read.getJSONArray("Dont");
+                    		boolean qfirst=json_read.getBoolean("First");
+                    		if(qfirst) {
+                    			db.createTable("Drop table IF EXISTS Kind2");
+                    			sql1=""; sql2=""; qcount=0;
+                    			System.out.println("第零次提問推薦");
+                    			String n[]= {"Sid", "Address"};
+                        		Boolean y[]= {false, true};
+                        		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Address From Store Order By Rand()", n, y);
+                        		double lon=json_read.getDouble("Longitude");
+                        		double lat=json_read.getDouble("Latitude");
+                        		double dis=json_read.getDouble("Distlimit");
+                        		int[] id=new int[30];
+                        		
+                        		for(int i=0;i<tmp.size();i++) { //取符合距離範圍的店家最多30筆
+                        			double[] cal=getGPFromAddress(tmp.get(i).get(1));
+                        			if(Distance(cal[0], cal[1], lat, lon)<=dis) {
+                        				id[qcount]=Integer.parseInt(tmp.get(i).get(0));
+                        				qcount++;                    				
+                        				if(qcount==30) break;
+                        			}
+                        			Thread.sleep(1);
+                        		}
+                        		System.out.println("符合距離範圍的店家: "+qcount);
+                        		if(qcount!=0) {
+                        			db.createTable("CREATE TEMPORARY TABLE Kind2 (Kid INT(6) NOT NULL AUTO_INCREMENT, Kkind CHAR(10), Prefer INT(6) default 0, PRIMARY KEY(Kid)) ENGINE=INNODB DEFAULT CHARSET=utf8");
+                        			db.createTable("Insert into Kind2 (Kid, Kkind) Select Kid, Kkind from Kind");
+	                        		
+                        			//sql1="Select Sname, Address, Mname, Price, SUM(Prefer) as P from Store, Storemenu, Menu, Menukind, Kind2 where (";
+                        			sql1="Create TEMPORARY TABLE Kind3 As Select Mid, Mname, Price, SUM(Prefer) as P from Store, Storemenu, Menu, Menukind, Kind2 where (";
+                            		for(int i=0;i<qcount;i++) {
+                            			sql1+="Sid="+id[i];
+                            			if(i!=qcount-1) {
+                            				sql1+=" Or ";
+                            			}else {
+                            				sql1+=") ";
+                            			}
+                            		}
+                            		//sql2="And K_mid=Mid And M_kid=Kid And Mid=S_mid And Sid=Ssid group by Sname, Address, Price, Mname Order by P DESC Limit 3";
+                            		sql2="And K_mid=Mid And M_kid=Kid And Mid=S_mid And Sid=Ssid group by Sname, Mid, Price, Mname Having P>100 Order by P DESC, Rand() Limit 10";
+                            		String sql="Update Kind2 set Prefer=100 where ";
+                            		int typ=json_read.getInt("Eatype");
+                            		switch(typ) {
+	                            		case 1:
+		                    				sql+="Kkind=\"早餐\" ";
+		                    				break;
+		                    			case 2:
+		                    				sql+="Kkind=\"點心\" ";
+		                    				break;
+		                    			case 3:
+		                    				sql+="Kkind=\"正餐\" ";
+		                    				break;
+		                    			case 4:
+		                    				sql+="Kkind=\"宵夜\" ";
+		                    				break;
+                            		}
+                            		db.createTable(sql);
+                            		System.out.println(sql);
+                        		}
+                    		}else {
+                    			for(int i=0;i<3;i++) {
+                    				sql1+="And Mname<>\""+re[i]+"\" ";
+                    			}
+                    		}
+                    		if(qcount!=0) {
+                    			json_write=new JSONObject();
+                    			String sql="";
+	                    		if(!like.get(0).toString().equals("false")) {
+	                    			sql="Update Kind2 set Prefer=Prefer+2 where ";
+	                        		for(int i=0;i<like.length();i++) {
+	                        			sql+="Kkind=\""+like.get(i).toString()+"\" ";
+	                        			if(i!=like.length()-1) {
+	                        				sql+="Or ";
+	                        			}
+	                        		}
+	                        		System.out.println(sql);
+		                    		db.createTable(sql);
+	                    		}
+	                    		if(!normal.get(0).toString().equals("false")) {
+	                    			sql="Update Kind2 set Prefer=Prefer+1 where ";
+	                        		for(int i=0;i<normal.length();i++) {
+	                        			sql+="Kkind=\""+normal.get(i).toString()+"\" ";
+	                        			if(i!=normal.length()-1) {
+	                        				sql+="Or ";
+	                        			}
+	                        		}
+	                        		System.out.println(sql);
+		                    		db.createTable(sql);
+	                    		} 
+	                    		if(!nlike.get(0).toString().equals("false")) {
+	                    			sql="Update Kind2 set Prefer=-999 where ";
+	                        		for(int i=0;i<nlike.length();i++) {
+	                        			sql+="Kkind=\""+nlike.get(i).toString()+"\" ";
+	                        			if(i!=nlike.length()-1) {
+	                        				sql+="Or ";
+	                        			}
+	                        		}
+	                        		System.out.println(sql);
+		                    		db.createTable(sql);
+	                    		}        
+	                    		
+	                    		//String n1[]= {"Sname", "Address", "Mname", "Price", "P"};
+	                    		String n1[]= {"Mid", "Mname", "Price", "P"};
+	                    		//Boolean y1[]= {true, true, true, true, true, true};
+	                    		Boolean y1[]= {true, true, true, true};
+	                    		//ArrayList<ArrayList<String>> jj=db.SelectTable2(sql1+sql2, n1, y1);
+	                    		db.createTable(sql1+sql2);
+	                    		ArrayList<ArrayList<String>> jj=db.SelectTable2("Select *from Kind3 group by Mid, Mname, Price, P Limit 3", n1, y1);
+	                    		
+	                    		if(db.SelectNum()!=0) {
+	                    			String n2[]= {"Sname", "Address"};
+		                    		Boolean y2[]= {true, true};
+	                    			for(int i=0;i<3;i++) {
+		                    			//re[i]=jj.get(i).get(2);
+		                    			re[i]=jj.get(i).get(1);
+		                    			json_write.put("A"+i, db.SelectTable2("Select Sname, Address from Store, Storemenu, Menu where Sid=Ssid And Mid=S_mid And Mid="+jj.get(i).get(0), n2, y2));
+		                    		}
+	                    			
+	                    			json_write.put("check", true);
+	                        		json_write.put("data", jj);
+	                        		db.createTable("Drop table Kind3");
+	                        		System.out.println("sql: "+sql1+sql2);
+	                        		System.out.println("jj: "+jj.toString());
+	                    		}else {
+	                    			json_write.put("check", false);
+	                				json_write.put("data", "查無料理");
+	                    		}
+                    		}else {
+                    			json_write.put("check", false);
+                				json_write.put("data", "範圍內無符合之料理");
+                    		}
+                    		bw.write(json_write+"\n");
+                    		bw.flush();
                     	}else if(x.equals("close")) {               	
                     		socketlist.remove(socket);
                     	}
@@ -393,7 +524,7 @@ public class eatwhat {
             	try {
         			String tmp = URLEncoder.encode(addr, "UTF-8");       			        			
         			InputStream is = new URL("http://maps.googleapis.com/maps/api/geocode/json?address="+tmp+"&language=zh-tw").openStream();
-        			//System.out.println("http://maps.googleapis.com/maps/api/geocode/json?address="+tmp+"&language=zh-tw");
+        			System.out.println("http://maps.googleapis.com/maps/api/geocode/json?address="+tmp+"&language=zh-tw");
         			BufferedReader rd = new BufferedReader(new InputStreamReader(is,"utf-8")); //避免中文亂碼問題
                     StringBuilder sb = new StringBuilder();
                     int cp;

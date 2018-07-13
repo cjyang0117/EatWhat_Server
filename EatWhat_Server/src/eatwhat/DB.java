@@ -57,12 +57,12 @@ public class DB {
 	  
 	  //建立table的方式 
 	  //可以看看Statement的使用方式 
-	  /*public void createTable() 
+	  public void createTable(String sql) 
 	  { 
 	    try 
 	    { 
 	      stat = con.createStatement(); 
-	      stat.executeUpdate(createdbSQL); 
+	      stat.executeUpdate(sql); 
 	    } 
 	    catch(SQLException e) 
 	    { 
@@ -72,7 +72,7 @@ public class DB {
 	    { 
 	      Close(); 
 	    } 
-	  } */
+	  } 
 	  
 	  //新增資料 
 	  //可以看看PrepareStatement的使用方式 
