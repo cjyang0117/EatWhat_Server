@@ -11,7 +11,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -92,6 +94,9 @@ public class eatwhat {
         	String[] re=new String[3];
         	int qcount=0;
         	String UserId;
+        	int recmdTime;
+        	int nowStoreId;
+        	boolean isComment=false;
             @Override
             public void run() { //Server剛啟動 App端要不到資料! 應該是解決了
                 try {
@@ -125,13 +130,25 @@ public class eatwhat {
                     	    bw.flush();
                     	}else if(x.equals("Store")) {
                     		json_write=new JSONObject();
-                    		int id=json_read.getInt("Id");
+                    		nowStoreId=json_read.getInt("Id");
                     		String[] n= {"Mname", "Price"};
-                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Mname, Price from Store, Menu, Storemenu Where Sid="+id+" And Mid=S_mid And Sid=Ssid", n);
+                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Mname, Price from Store, Menu, Storemenu Where Sid="+nowStoreId+" And Mid=S_mid And Sid=Ssid", n);
                     		json_write.put("Menu", tmp);
                     		String[] n1= {"Uid", "Evaluation"};
-                    		tmp=db.SelectTable2("Select Uid, Evaluation from Sevaevaluatetest, Usertest, Store Where Sid=1 And S_uid=Uid And S_sid=Sid;", n1);
+                    		tmp=db.SelectTable2("Select Uid, Evaluation from Sevaevaluatetest, Usertest, Store Where Sid="+nowStoreId+" And S_uid=Uid And S_sid=Sid", n1);
                     		json_write.put("Evaluation", tmp);
+                    		String[] n2= {"Evaluation", "Escore"};
+                    		tmp=db.SelectTable2("Select Evaluation, Escore from Sevaevaluatetest Where S_uid=1 And S_sid="+nowStoreId, n2);
+                    		if(db.SelectNum()!=0) {
+                    			json_write.put("check", true);
+                    			json_write.put("myEvaluation", tmp);
+                    			isComment=true;
+                    			System.out.println("成功: Select Evaluation, Escore from Sevaevaluatetest Where S_uid=1 And S_sid="+nowStoreId);
+                    		}else {
+                    			json_write.put("check", false);
+                    			isComment=false;
+                    			System.out.println("失敗: Select Evaluation, Escore from Sevaevaluatetest Where S_uid=1 And S_sid="+nowStoreId);
+                    		}
                     		bw.write(json_write+"\n");
                 			bw.flush();
                     	}else if(x.equals("login")) {    //登入放在這裡 會不會被客戶端修改程式碼入侵             
@@ -146,8 +163,13 @@ public class eatwhat {
                     		}else {
                     			if(p.equals(tmp.get(0).get(1))) {
                         			json_write.put("Checklogin", true);   
-                        			UserId=tmp.get(0).get(0);
                         			System.out.println("帳密正確");
+                        			
+                        			UserId=tmp.get(0).get(0);
+                        			String[] n1= {"R_uid"};
+                        			db.SelectTable2("Select R_uid from Recommend Where R_uid=1", n1);
+                        			recmdTime=db.SelectNum();
+                        			json_write.put("recmdTime", recmdTime); 
                     			}else {
                         			json_write.put("Checklogin", false);
                         			System.out.println("無此密碼");
@@ -353,7 +375,7 @@ public class eatwhat {
                       		JSONArray nlike=json_read.getJSONArray("Dont");
                     		boolean qfirst=json_read.getBoolean("First");
                     		if(qfirst) {
-                    			db.createTable("Drop table IF EXISTS Kind2");
+                    			db.executeSql("Drop table IF EXISTS Kind2"); 
                     			sql1=""; sql2=""; qcount=0;
                     			System.out.println("第1次提問推薦");
                     			String n[]= {"Sid", "Address", "lng", "lat"};
@@ -375,8 +397,8 @@ public class eatwhat {
                         		}
                         		System.out.println("符合距離範圍的店家: "+qcount);
                         		if(qcount!=0) {
-                        			db.createTable("CREATE TEMPORARY TABLE Kind2 (Kid INT(6) NOT NULL AUTO_INCREMENT, Kkind CHAR(10), Prefer INT(6) default 0, PRIMARY KEY(Kid)) ENGINE=INNODB DEFAULT CHARSET=utf8");
-                        			db.createTable("Insert into Kind2 (Kid, Kkind) Select Kid, Kkind from Kind");
+                        			db.executeSql("CREATE TEMPORARY TABLE Kind2 (Kid INT(6) NOT NULL AUTO_INCREMENT, Kkind CHAR(10), Prefer INT(6) default 0, PRIMARY KEY(Kid)) ENGINE=INNODB DEFAULT CHARSET=utf8");
+                        			db.executeSql("Insert into Kind2 (Kid, Kkind) Select Kid, Kkind from Kind");
                         			sql1="Create TEMPORARY TABLE Kind3 As Select Mid, Mname, Price, SUM(Prefer) as P from Store, Storemenu, Menu, Menukind, Kind2 where (";
                             		for(int i=0;i<qcount;i++) {
                             			sql1+="Sid="+id[i];
@@ -403,7 +425,7 @@ public class eatwhat {
 		                    				sql+="Kkind=\"宵夜\" ";
 		                    				break;
                             		}
-                            		db.createTable(sql);
+                            		db.executeSql(sql);
                             		System.out.println(sql);
                         		}
                     		}else {
@@ -423,7 +445,7 @@ public class eatwhat {
 	                        			}
 	                        		}
 	                        		System.out.println(sql);
-		                    		db.createTable(sql);
+		                    		db.executeSql(sql);
 	                    		}
 	                    		if(!normal.get(0).toString().equals("false")) {
 	                    			sql="Update Kind2 set Prefer=Prefer+1 where ";
@@ -434,7 +456,7 @@ public class eatwhat {
 	                        			}
 	                        		}
 	                        		System.out.println(sql);
-		                    		db.createTable(sql);
+		                    		db.executeSql(sql);
 	                    		} 
 	                    		if(!nlike.get(0).toString().equals("false")) {
 	                    			sql="Update Kind2 set Prefer=-999 where ";
@@ -445,10 +467,10 @@ public class eatwhat {
 	                        			}
 	                        		}
 	                        		System.out.println(sql);
-		                    		db.createTable(sql);
+		                    		db.executeSql(sql);
 	                    		}        
 	                    		String n1[]= {"Mid", "Mname", "Price", "P"};
-	                    		db.createTable(sql1+sql2);
+	                    		db.executeSql(sql1+sql2);
 	                    		ArrayList<ArrayList<String>> jj=db.SelectTable2("Select *from Kind3 group by Mid, Mname, Price, P Limit 3", n1);
 	                    		
 	                    		if(db.SelectNum()!=0) {
@@ -459,7 +481,7 @@ public class eatwhat {
 		                    		}
 	                    			json_write.put("check", true);
 	                        		json_write.put("data", jj);
-	                        		db.createTable("Drop table Kind3");
+	                        		db.executeSql("Drop table Kind3");
 	                        		System.out.println("sql: "+sql1+sql2);
 	                        		System.out.println("jj: "+jj.toString());
 	                    		}else {
@@ -473,8 +495,68 @@ public class eatwhat {
                     		bw.write(json_write+"\n");
                     		bw.flush();
                     	}else if(x.equals("User")) {
+                    		json_write=new JSONObject();
+                    		boolean isUser=json_read.getBoolean("isUser");
                     		String[] n= {"Uid", "Uname", "Sid", "Sname", "Address", "Sphone", "Star", "Mname", "Price"};
-                    		//ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Uid, Uname, Sid, Sname, Address, Sphone, Star, Mname, Price from User, Store, Menu, Storemenu, Recommend Where Uid=R_uid And R_mid=Mid And Sid="+id+" And Sid=Ssid And Mid=S_mid", n);
+                    		ArrayList<ArrayList<String>> tmp;
+                    		if(isUser) {
+                    			tmp=db.SelectTable2("Select Uid, Uname, Sid, Sname, Address, Sphone, Star, Mname, Price from User, Store, Menu, Storemenu, Recommend Where Uid=R_uid And R_mid=Mid And Sid=Ssid And Mid=S_mid", n);
+                    		}else {
+                    			tmp=db.SelectTable2("Select Uid, Uname, Sid, Sname, Address, Sphone, Star, Mname, Price from Usertrack, Usertest, Store, Menu, Storemenu, Recommend Where Uid=T_uid And Uid=R_uid And R_mid=Mid And Sid=Ssid And Mid=S_mid And Uid=1", n);
+                    		}
+                    		if(tmp!=null) {
+                    			json_write.put("check", true);
+                    			json_write.put("data", tmp);
+                    		}else {
+                    			json_write.put("check", false);
+                    			json_write.put("data", "資料錯誤");
+                    		}
+                    		bw.write(json_write+"\n");
+                    		bw.flush();
+                    	}else if(x.equals("Comment")) {
+                    		json_write=new JSONObject();
+                    		String Evaluation=json_read.getString("Evaluation");
+                    		float Escore=json_read.getFloat("Escore");
+                    		
+                    		if(isComment) {
+                    			if(db.executeSql("UPDATE Sevaevaluatetest SET Evaluation=\""+Evaluation+"\", Escore="+Escore+" Where S_sid="+nowStoreId+" And S_uid=1")) {
+                    				System.out.println("成功: UPDATE Sevaevaluatetest SET Evaluation=\""+Evaluation+"\", Escore="+Escore+" Where S_sid="+nowStoreId+" And S_uid=1");
+                    				json_write.put("check", true);
+	                				json_write.put("data", "評論已修改");
+                    			}else {
+                    				json_write.put("check", false);
+	                    			json_write.put("data", "評論修改失敗");
+	                    			System.out.println("失敗: UPDATE Sevaevaluatetest SET Evaluation=\""+Evaluation+"\", Escore="+Escore+" Where S_sid="+nowStoreId+" And S_uid=1");
+                    			}
+                    		}else {
+	                    		if(db.executeSql("Insert into Sevaevaluatetest(S_sid, S_uid, Evaluation, Escore) Values ("+nowStoreId+", "+UserId+", \""+Evaluation+"\", "+Escore+")")) {
+	                    			json_write.put("check", true);
+	                				json_write.put("data", "評論已新增");
+	                				System.out.println("成功: Insert into Sevaevaluatetest(S_sid, S_uid, Evaluation, Escore) Values ("+nowStoreId+", "+UserId+", \""+Evaluation+"\", "+Escore+")");
+	                    		}else {
+	                    			json_write.put("check", false);
+	                    			json_write.put("data", "評論新增失敗");
+	                    			System.out.println("失敗: Insert into Sevaevaluatetest(S_sid, S_uid, Evaluation, Escore) Values ("+nowStoreId+", "+UserId+", \""+Evaluation+"\", "+Escore+")");
+	                    		}                   			
+                    		}
+                    	}else if(x.equals("Recommend")) {
+                    		json_write=new JSONObject();
+                    		if(recmdTime<3) {
+                    			int mid=json_read.getInt("Mid");
+                    			if(db.executeSql("Insert into Recommend (R_uid, R_mid) Values("+UserId+", "+mid+")")) {
+                    				json_write.put("check", true);
+                    				json_write.put("data", "料理已推薦");
+                    			}else {
+                    				json_write.put("check", false);
+                    				json_write.put("data", "推薦失敗");
+                    			}
+                    			recmdTime--;
+                    		}else {
+                    			json_write.put("check", false);
+                    			json_write.put("data", "已達每日推薦次數");
+                    		}
+                    		bw.write(json_write+"\n");
+                    		bw.flush();
                     	}else if(x.equals("close")) {               	
                     		socketlist.remove(socket);
                     	}
@@ -546,6 +628,14 @@ public class eatwhat {
                 distance = Math.round(distance * 10000) / 10000;
 
                 return distance ;
+            }
+            //取得今天日期
+            public String getDateTime(){
+            	SimpleDateFormat sdFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss");
+            	Date date = new Date();
+            	String strDate = sdFormat.format(date);
+            	System.out.println(strDate);
+            	return strDate;
             }
         });
         // 啟動執行緒

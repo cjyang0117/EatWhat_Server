@@ -55,18 +55,19 @@ public class DB {
 		} 	    
 	  } 
 	  
-	  //建立table的方式 
-	  //可以看看Statement的使用方式 
-	  public void createTable(String sql) 
+	  //INSERT、UPDATE、DELETE、CREATE TABLE、DROP TABLE
+	  public boolean executeSql(String sql) 
 	  { 
 	    try 
 	    { 
 	      stat = con.createStatement(); 
-	      stat.executeUpdate(sql); 
+	      stat.executeUpdate(sql);
+	      return true;
 	    } 
 	    catch(SQLException e) 
 	    { 
-	      System.out.println("CreateDB Exception :" + e.toString()); 
+	      System.out.println("executeSql Exception :" + e.toString());
+	      return false;
 	    } 
 	    finally 
 	    { 
@@ -100,6 +101,7 @@ public class DB {
 	      Close(); 
 	    } 
 	  }
+	  
 	  
 	  //刪除Table, 
 	  //跟建立table很像 
@@ -154,7 +156,7 @@ public class DB {
 		  return count;
 	  }
 	  public ArrayList<ArrayList<String>> SelectTable2(String selectSQL, String[] name) throws UnsupportedEncodingException{ 
-		ArrayList<ArrayList<String>> tmp = new ArrayList<ArrayList<String>>();		 
+		ArrayList<ArrayList<String>> tmp = new ArrayList<ArrayList<String>>();
 		try{ 
 		  stat = con.createStatement(); 
 		  rs = stat.executeQuery(selectSQL); 
@@ -165,15 +167,17 @@ public class DB {
 				  tmp.get(count).add(rs.getString(name[i]));
 			  }
 			  count++;
-		  }	
-		} 
+		  }
+		  return tmp;
+		}
 		catch(SQLException e){ 
 		  System.out.println("SelectTable2 Exception :" + e.toString()); 
+		  return null;
 		} 
 		finally{
 		  Close();	      
 		}
-		return tmp;
+		
 	  }
 	  //完整使用完資料庫後,記得要關閉所有Object 
 	  //否則在等待Timeout時,可能會有Connection poor的狀況 
