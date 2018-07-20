@@ -131,8 +131,8 @@ public class eatwhat {
                     	}else if(x.equals("Store")) {
                     		json_write=new JSONObject();
                     		nowStoreId=json_read.getInt("Id");
-                    		String[] n= {"Mname", "Price"};
-                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Mname, Price from Store, Menu, Storemenu Where Sid="+nowStoreId+" And Mid=S_mid And Sid=Ssid", n);
+                    		String[] n= {"Mname", "Price", "Mid"};
+                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Mname, Price, Mid from Store, Menu, Storemenu Where Sid="+nowStoreId+" And Mid=S_mid And Sid=Ssid", n);
                     		json_write.put("Menu", tmp);
                     		String[] n1= {"Uid", "Evaluation"};
                     		tmp=db.SelectTable2("Select Uid, Evaluation from Sevaevaluatetest, Usertest, Store Where Sid="+nowStoreId+" And S_uid=Uid And S_sid=Sid", n1);
@@ -502,7 +502,7 @@ public class eatwhat {
                     		if(isUser) {
                     			tmp=db.SelectTable2("Select Uid, Uname, Sid, Sname, Address, Sphone, Star, Mname, Price from User, Store, Menu, Storemenu, Recommend Where Uid=R_uid And R_mid=Mid And Sid=Ssid And Mid=S_mid", n);
                     		}else {
-                    			tmp=db.SelectTable2("Select Uid, Uname, Sid, Sname, Address, Sphone, Star, Mname, Price from Usertrack, Usertest, Store, Menu, Storemenu, Recommend Where Uid=T_uid And Uid=R_uid And R_mid=Mid And Sid=Ssid And Mid=S_mid And Uid=1", n);
+                    			tmp=db.SelectTable2("Select Uid, Uname, Sid, Sname, Address, Sphone, Star, Mname, Price from Store, Storemenu, User, Menu, Recommend, Usertrack Where Sid=Ssid And Mid=S_mid And Uid=R_uid And R_mid=Mid And Uid=Uid_ed And T_uid=2", n);
                     		}
                     		if(tmp!=null) {
                     			json_write.put("check", true);
@@ -539,18 +539,20 @@ public class eatwhat {
 	                    			System.out.println("失敗: Insert into Sevaevaluatetest(S_sid, S_uid, Evaluation, Escore) Values ("+nowStoreId+", "+UserId+", \""+Evaluation+"\", "+Escore+")");
 	                    		}                   			
                     		}
+                    		bw.write(json_write+"\n");
+                    		bw.flush();
                     	}else if(x.equals("Recommend")) {
                     		json_write=new JSONObject();
-                    		if(recmdTime<3) {
+                    		if(recmdTime<2) {
                     			int mid=json_read.getInt("Mid");
                     			if(db.executeSql("Insert into Recommend (R_uid, R_mid) Values("+UserId+", "+mid+")")) {
                     				json_write.put("check", true);
                     				json_write.put("data", "料理已推薦");
+                    				recmdTime++;
                     			}else {
                     				json_write.put("check", false);
                     				json_write.put("data", "推薦失敗");
                     			}
-                    			recmdTime--;
                     		}else {
                     			json_write.put("check", false);
                     			json_write.put("data", "已達每日推薦次數");
