@@ -168,7 +168,11 @@ public class DB {
 			  }
 			  count++;
 		  }
-		  return tmp;
+		  if(count!=0) {
+			  return tmp;
+		  }else {
+			  return null;
+		  }
 		}
 		catch(SQLException e){ 
 		  System.out.println("SelectTable2 Exception :" + e.toString()); 
