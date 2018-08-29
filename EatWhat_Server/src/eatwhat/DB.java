@@ -77,24 +77,21 @@ public class DB {
 	  
 	  //新增資料 
 	  //可以看看PrepareStatement的使用方式 
-	  public String insertTable( String a,String n, String p, String m, String um, String ph) 
+	  public boolean insertTable(String signData[]) 
 	  { 
 	    try 
 	    { 
 	      pst = con.prepareStatement("insert into User(Account, Name, Password, Mail, Uname, Uphone) Values(?,?,?,?,?,?)"); 
-	      pst.setString(1, a); 
-	      pst.setString(2, n);
-	      pst.setString(3, p);
-	      pst.setString(4, m);
-	      pst.setString(5, um);
-	      pst.setString(6, ph);
+	      for(int i=1;i<7;i++) {
+	    	  pst.setString(i, signData[i-1]);
+	      }
 	      pst.executeUpdate();
-	      return "";
+	      return true;
 	    } 
 	    catch(SQLException e) 
 	    { 
 	      System.out.println("InsertDB Exception :" + e.toString());
-	      return e.toString();
+	      return false;
 	    } 
 	    finally 
 	    { 
