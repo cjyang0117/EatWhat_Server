@@ -45,11 +45,19 @@ public class eatwhat {
 							int res = Integer.parseInt(str);
 							switch(res) {
 								case 0:
-									System.out.println("請輸入剔除編號:");
+									/*System.out.println("請輸入剔除編號:");
 									str = cmd.readLine();
 									socketlist.get(Integer.parseInt(str)).close();
-		                            socketlist.remove(Integer.parseInt(str));
+		                            socketlist.remove(Integer.parseInt(str));*/
 		                            
+									break;
+								case 1:
+									DB db=new DB();
+									db.executeSql("Update User set Online=false");
+									System.exit(0);
+									break;
+								case 2:
+									System.out.println("目前連線數"+socketlist.size());
 									break;
 							}
 						} catch (IOException e) {
@@ -77,10 +85,10 @@ public class eatwhat {
             try {
                 while(true){
                     Thread.sleep(2000);
-                    System.out.println("目前連線數"+socketlist.size());
+                    //System.out.println("目前連線數"+socketlist.size());
                     for(int i=0; i<socketlist.size();i++){ //Socket close:socketlist
                         if(isServerClose(socketlist.get(i))) {        //當該客戶端網路斷線時,從SocketList剔除
-                        	System.out.println("關閉Socket");
+                        	//System.out.println("關閉Socket");
                         	//socketlist.get(i).close();
                             socketlist.remove(i);
                             i-=1;
@@ -106,7 +114,6 @@ public class eatwhat {
         try {
             Socket socket = serverSocket.accept();
             socket.setSoTimeout(1800*1000);
-            System.out.println("連線成功");
             // 呼叫創造新的使用者
             createNewThread(socket);
         } catch (Exception e) {
@@ -129,6 +136,7 @@ public class eatwhat {
         	int nowStoreId;
         	boolean isComment=false;
         	boolean isCon=false;
+        	boolean isSend=true;
         	String[] signData;
         	//int timer=0;
             @Override
@@ -147,7 +155,7 @@ public class eatwhat {
                     while (socket.isConnected()) { 
                     	String x=receive("action");
                     	if(x!=null) {
-	                    	System.out.println(x);
+	                    	//System.out.println(x);
 	                    	json_write=new JSONObject();
 	                    	if(x.equals("show")) {	              
 	                    		String name=json_read.getString("data");
@@ -160,7 +168,6 @@ public class eatwhat {
 	                    				tmp.get(i).remove(3);
 	                    				tmp.get(i).remove(3);
 	                    			}
-	                    			System.out.println(tmp.toString());
 	                    			json_write.put("check", true);
 	                    			json_write.put("data", tmp);
 	                    		}else {
@@ -213,14 +220,13 @@ public class eatwhat {
 	                    		if(db.SelectNum()==0) {                  			
 	                    			json_write.put("Checklogin", false);
 	                    			json_write.put("data", "帳號或密碼錯誤");
-	                    			System.out.println("無此帳號");
+	                    			//System.out.println("無此帳號");
             						bw.write(json_write+"\n"); bw.flush();
 	                    			break;
 	                    		}else {
 	                    			if(p.equals(tmp.get(0).get(1))) {
 	                    				if(Integer.parseInt(tmp.get(0).get(2))==0) {
 		                        			json_write.put("Checklogin", true);   
-		                        			System.out.println("帳密正確");
 		                        			UserId=tmp.get(0).get(0); //if(Integer.parseInt(UserId)==246) socket.setSoTimeout(10*1000);
 		                        			db.executeSql("Update User set Online=true Where Uid="+UserId);
 		                        			db.executeSql("Update User set Actived=true Where Uid="+UserId);
@@ -230,17 +236,18 @@ public class eatwhat {
 		                        			json_write.put("recmdTime", recmdTime);
 		                        			json_write.put("cnum", Integer.parseInt(db.SelectTable2("Select COUNT(Uid) as c from Utal where Uid="+UserId+" And Score>=0.5", new String[] {"c"}).get(0).get(0).toString()));
 		                        			json_write.put("mail", db.SelectTable2("Select Mail from User Where Uid="+UserId, new String[] {"Mail"}).get(0).get(0).toString());
+		                        			json_write.put("name", db.SelectTable2("Select Uname from User Where Uid="+UserId, new String[] {"Uname"}).get(0).get(0).toString());
 	                    				}else {
 	                    					json_write.put("Checklogin", false);
 	                    					json_write.put("data", "帳號已登入");
-	                    					System.out.println("帳號已登入");
+	                    					//System.out.println("帳號已登入");
 	                    					bw.write(json_write+"\n"); bw.flush();
 	                    					break;
 	                    				}
 	                    			}else {
 	                        			json_write.put("Checklogin", false);
 	                        			json_write.put("data", "帳號或密碼錯誤");
-	                        			System.out.println("無此密碼");
+	                        			//System.out.println("無此密碼");
 	                        			bw.write(json_write+"\n"); bw.flush();
 	                        			break;
 	                    			}
@@ -249,12 +256,16 @@ public class eatwhat {
 	                    		JSONArray j=json_read.getJSONArray("signData");
 	                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Uid from User Where Account=\""+j.get(0).toString()+"\"", new String[] {"Uid"});
 	                    		ArrayList<ArrayList<String>> tmp2=db.SelectTable2("Select Uid from User Where Mail=\""+j.get(3).toString()+"\"", new String[] {"Uid"});
+	                    		ArrayList<ArrayList<String>> tmp3=db.SelectTable2("Select Uid from User Where Uname=\""+j.get(4).toString()+"\"", new String[] {"Uid"});
 	                    		if(tmp!=null) {
 	                    			json_write.put("check", false);
 	                    			json_write.put("data", "這個帳號已經有人使用");
 	                    		}else if(tmp2!=null) {
 	                    			json_write.put("check", false);
 	                    			json_write.put("data", "信箱已被註冊");
+	                    		}else if(tmp3!=null) {
+	                    			json_write.put("check", false);
+	                    			json_write.put("data", "暱稱已有人使用");
 	                    		}else {
 	                    			json_write.put("check", true);
 	                    			
@@ -299,49 +310,53 @@ public class eatwhat {
 	                    			sql="Select Sid, lng, lat From Store Order By Rand()";
 	                    		}
 	                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2(sql, new String[] {"Sid", "lng", "lat"});
-	                    		ArrayList<ArrayList<String>> tmp2;
-	                    		double lon=json_read.getDouble("Longitude");
-	                    		double lat=json_read.getDouble("Latitude");
-	                    		double dis=json_read.getDouble("Distlimit");
-	                    		int typ=json_read.getInt("Eatype");
-	                    		JSONArray dont=json_read.getJSONArray("Dontwant");
 	                    		
-	                    		db.executeSql("CREATE TEMPORARY TABLE Kind2 (Kid INT(6) NOT NULL AUTO_INCREMENT, Prefer INT(6) default 0, PRIMARY KEY(Kid)) ENGINE=INNODB DEFAULT CHARSET=utf8");
-	                			db.executeSql("Insert into Kind2 (Kid) Select Kid from Kind");
-	                			db.executeSql("Update Kind2 set Prefer=1 Where Kid="+typ);	//1早餐 2正餐 33點心
-	                    		
-	                			if(Integer.parseInt(dont.get(0).toString())!=-1) {
-	                				sql="Update Kind2 set Prefer=Prefer-1 Where Kid IN(";
-		                    		for(int i=0;i<dont.length();i++) {
-		                    			sql+=Integer.parseInt(dont.get(i).toString());
-		                    			if(i!=dont.length()-1) {
-		                    				sql+=", ";
-		                    			}else {
-		                    				sql+=")";
+	                    		if(tmp!=null) {
+		                    		ArrayList<ArrayList<String>> tmp2;
+		                    		double lon=json_read.getDouble("Longitude");
+		                    		double lat=json_read.getDouble("Latitude");
+		                    		double dis=json_read.getDouble("Distlimit");
+		                    		int typ=json_read.getInt("Eatype");
+		                    		JSONArray dont=json_read.getJSONArray("Dontwant");
+		                    		
+		                    		db.executeSql("CREATE TEMPORARY TABLE Kind2 (Kid INT(6) NOT NULL AUTO_INCREMENT, Prefer INT(6) default 0, PRIMARY KEY(Kid)) ENGINE=INNODB DEFAULT CHARSET=utf8");
+		                			db.executeSql("Insert into Kind2 (Kid) Select Kid from Kind");
+		                			db.executeSql("Update Kind2 set Prefer=1 Where Kid="+typ);	//1早餐 2正餐 33點心
+		                    		
+		                			if(Integer.parseInt(dont.get(0).toString())!=-1) {
+		                				sql="Update Kind2 set Prefer=Prefer-1 Where Kid IN(";
+			                    		for(int i=0;i<dont.length();i++) {
+			                    			sql+=Integer.parseInt(dont.get(i).toString());
+			                    			if(i!=dont.length()-1) {
+			                    				sql+=", ";
+			                    			}else {
+			                    				sql+=")";
+			                    			}
+			                    		}
+			                    		db.executeSql(sql);
+		                			}
+		                    		
+		                    		Double tmpD;
+		                    		for(int i=0;i<tmp.size();i++) {	 //取符合距離範圍的店家，且該店家有符合需求之菜色，然後隨機取一道
+		                    			tmpD=Distance(Double.parseDouble(tmp.get(i).get(2)), Double.parseDouble(tmp.get(i).get(1)), lat, lon);
+		                    			if(tmpD<=dis) {
+		                					int id=Integer.parseInt(tmp.get(i).get(0));   
+		                					sql="Select Sid, Sname, Address, Sphone, Star, Mid, Mname, Price, SUM(Prefer) as P from Store, new_Menu, new_Menukind, Kind2 where K_mid=Mid And M_kid=Kid And Sid=Ssid And Sid="+id+" group by Sid, Mid Having P=1 Order by Rand() Limit 1";
+		                					tmp2=db.SelectTable2(sql, new String[] {"Sid", "Sname", "Address", "Sphone", "Star", "Mid", "Mname", "Price", "P"});
+		                					if(db.SelectNum()!=0) {
+		                						json_write.put("check", true);
+		                						json_write.put("data", tmp2);
+		                						break;
+		                					}
+		                				}
+		                    			if(i==tmp.size()-1) {
+		                    				json_write.put("check", false);
+		                    				json_write.put("data", "範圍內無符合之料理");
 		                    			}
 		                    		}
-		                    		System.out.println(sql);
-		                    		db.executeSql(sql);
-	                			}
-	                    		
-	                    		Double tmpD;
-	                    		for(int i=0;i<tmp.size();i++) {	 //取符合距離範圍的店家，且該店家有符合需求之菜色，然後隨機取一道
-	                    			tmpD=Distance(Double.parseDouble(tmp.get(i).get(2)), Double.parseDouble(tmp.get(i).get(1)), lat, lon);
-	                    			if(tmpD<=dis) {
-	                					int id=Integer.parseInt(tmp.get(i).get(0));   
-	                					sql="Select Sid, Sname, Address, Sphone, Star, Mid, Mname, Price, SUM(Prefer) as P from Store, new_Menu, new_Menukind, Kind2 where K_mid=Mid And M_kid=Kid And Sid=Ssid And Sid="+id+" group by Sid, Mid Having P=1 Order by Rand() Limit 1";
-	                					System.out.println("sql: "+sql);
-	                					tmp2=db.SelectTable2(sql, new String[] {"Sid", "Sname", "Address", "Sphone", "Star", "Mid", "Mname", "Price", "P"});
-	                					if(db.SelectNum()!=0) {
-	                						json_write.put("check", true);
-	                						json_write.put("data", tmp2);
-	                						break;
-	                					}
-	                				}
-	                    			if(i==tmp.size()-1) {
-	                    				json_write.put("check", false);
-	                    				json_write.put("data", "範圍內無符合之料理");
-	                    			}
+	                    		}else {
+	                    			json_write.put("check", false);
+                    				json_write.put("data", "查無資料");
 	                    		}
 	                       	}else if(x.equals("Question2")) {
 	                      		JSONArray like=json_read.getJSONArray("Like");
@@ -356,7 +371,6 @@ public class eatwhat {
 	                        		double dis=json_read.getDouble("Distlimit");
 	                        		int typ=json_read.getInt("Eatype");
 	                        		
-	                    			System.out.println("第1次提問推薦");
 	                    			boolean isTime=json_read.getBoolean("isTime");
 		                    		String sql;
 		                    		if(isTime){
@@ -366,33 +380,33 @@ public class eatwhat {
 		                    		}
 		                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2(sql, new String[] {"Sid", "lng", "lat"});
 	                        		
-	                        		int[] id=new int[30];
-	                        		for(int i=0;i<tmp.size();i++) { //取符合距離範圍的店家最多30筆
-	                        			Double ttt=Distance(Double.parseDouble(tmp.get(i).get(2)), Double.parseDouble(tmp.get(i).get(1)), lat, lon);
-	                        			System.out.println("相距: "+ttt);
-	                        			if(ttt<=dis) {	
-	                        				id[qcount]=Integer.parseInt(tmp.get(i).get(0));
-	                        				qcount++;                    				
-	                        				if(qcount==30) break;
-	                        			}
-	                        		}
-	                        		System.out.println("符合距離範圍的店家: "+qcount);
-	                        		if(qcount!=0) {
-	                        			db.executeSql("CREATE TEMPORARY TABLE Kind2 (Kid INT(6) NOT NULL AUTO_INCREMENT, Prefer INT(6) default 0, PRIMARY KEY(Kid)) ENGINE=INNODB DEFAULT CHARSET=utf8");
-	                        			db.executeSql("Insert into Kind2 (Kid) Select Kid from Kind");
-	                        			sql1="Select Sid, Sname, Address, Sphone, Star, Mid, Mname, Price, SUM(Prefer) as P from Store, new_Menu, new_Menukind, Kind2 where Sid IN(";
-	                        			for(int i=0;i<qcount;i++) {
-	                            			sql1+=id[i];
-	                            			if(i!=qcount-1) {
-	                            				sql1+=", ";
-	                            			}else {
-	                            				sql1+=") ";
-	                            			}
-	                            		}
-	                            		sql2="And K_mid=Mid And M_kid=Kid And Sid=Ssid group by Sid, Mid Having P>100 Order by P DESC, Rand() Limit 10";
-	                            		
-	                            		db.executeSql("Update Kind2 set Prefer=100 where Kid="+typ);
-	                        		}
+		                    		if(tmp!=null) {
+		                        		int[] id=new int[30];
+		                        		for(int i=0;i<tmp.size();i++) { //取符合距離範圍的店家最多30筆
+		                        			Double ttt=Distance(Double.parseDouble(tmp.get(i).get(2)), Double.parseDouble(tmp.get(i).get(1)), lat, lon);
+		                        			if(ttt<=dis) {	
+		                        				id[qcount]=Integer.parseInt(tmp.get(i).get(0));
+		                        				qcount++;                    				
+		                        				if(qcount==30) break;
+		                        			}
+		                        		}
+		                        		if(qcount!=0) {
+		                        			db.executeSql("CREATE TEMPORARY TABLE Kind2 (Kid INT(6) NOT NULL AUTO_INCREMENT, Prefer INT(6) default 0, PRIMARY KEY(Kid)) ENGINE=INNODB DEFAULT CHARSET=utf8");
+		                        			db.executeSql("Insert into Kind2 (Kid) Select Kid from Kind");
+		                        			sql1="Select Sid, Sname, Address, Sphone, Star, Mid, Mname, Price, SUM(Prefer) as P from Store, new_Menu, new_Menukind, Kind2 where Sid IN(";
+		                        			for(int i=0;i<qcount;i++) {
+		                            			sql1+=id[i];
+		                            			if(i!=qcount-1) {
+		                            				sql1+=", ";
+		                            			}else {
+		                            				sql1+=") ";
+		                            			}
+		                            		}
+		                            		sql2="And K_mid=Mid And M_kid=Kid And Sid=Ssid group by Sid, Mid Having P>100 Order by P DESC, Rand() Limit 10";
+		                            		
+		                            		db.executeSql("Update Kind2 set Prefer=100 where Kid="+typ);
+		                        		}
+		                    		}
 	                    		}else {
 	                    			int idx=sql1.indexOf("Mname NOT IN(");
 	                    			if(idx!=-1) {
@@ -421,7 +435,6 @@ public class eatwhat {
 		                        				sql+=")";
 		                        			}
 		                        		}
-		                        		System.out.println(sql);
 			                    		db.executeSql(sql);
 		                    		}
 		                    		if(Integer.parseInt(normal.get(0).toString())!=-1) {
@@ -434,7 +447,6 @@ public class eatwhat {
 		                        				sql+=")";
 		                        			}
 		                        		}
-		                        		System.out.println(sql);
 			                    		db.executeSql(sql);
 		                    		} 
 		                    		if(Integer.parseInt(nlike.get(0).toString())!=-1) {
@@ -447,18 +459,15 @@ public class eatwhat {
 		                        				sql+=")";
 		                        			}
 		                        		}
-		                        		System.out.println(sql);
 			                    		db.executeSql(sql);
 		                    		} 
 		                    		
 		                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2(sql1+sql2, new String[] {"Sid", "Sname", "Address", "Sphone", "Star", "Mid", "Mname", "Price", "P"});
-		                    		System.out.println(sql1+sql2);
 		                    		if(tmp!=null) { //解決菜名重複卻屬於不同ID問題
 		                    			if(tmp.size()>2) { 
 			                    			int j=1; 
 				                    		for(int i=0;i<j;i++) {
 				                    			if(tmp.get(i).get(6).toString().equals(tmp.get(j).get(6).toString())) {
-				                    				//System.out.println(i+": "+tmp.get(i).get(6).toString()+"="+j+": "+tmp.get(j).get(6).toString());
 				                    				tmp.remove(j);
 				                    				i=-1;
 				                    				if(j!=tmp.size()) {
@@ -477,7 +486,6 @@ public class eatwhat {
 				                    				break;
 				                    			}
 				                    		}
-				                    		System.out.println(tmp);
 		                    			}
 		                    			
 		                    			for(int i=0;i<tmp.size();i++) 
@@ -486,7 +494,7 @@ public class eatwhat {
 		                    			json_write.put("data", tmp);
 		                    		}else {
 		                    			json_write.put("check", false);
-		                    			json_write.put("data", "查無資料");
+		                    			json_write.put("data", "查無料理");
 		                    		}
 	                    		}else {
 	                    			json_write.put("check", false);
@@ -496,9 +504,9 @@ public class eatwhat {
 	                    		boolean isUser=json_read.getBoolean("isUser");
 	                    		ArrayList<ArrayList<String>> tmp;
 	                    		if(isUser) {
-	                    			tmp=db.SelectTable2("Select Uid, Uname, Sid, Sname, Address, Sphone, Star, Mid, Mname, Price from User, Store, new_Menu, new_Recommend Where Uid=R_uid And R_mid=Mid And Sid=Ssid", new String[] {"Uid", "Uname", "Sid", "Sname", "Address", "Sphone", "Star","Mid", "Mname", "Price"});
+	                    			tmp=db.SelectTable2("Select Uid, Uname, Sid, Sname, Address, Sphone, Star, Mid, Mname, Price from User, Store, new_Menu, new_Recommend Where Uid=R_uid And R_mid=Mid And Sid=Ssid Order by Rtime DESC", new String[] {"Uid", "Uname", "Sid", "Sname", "Address", "Sphone", "Star","Mid", "Mname", "Price"});
 	                    		}else {
-	                    			tmp=db.SelectTable2("Select Uid, Uname, Sid, Sname, Address, Sphone, Star, Mid, Mname, Price from Store, User, new_Menu, new_Recommend, Usertrack Where Sid=Ssid And Uid=R_uid And R_mid=Mid And Uid=Uid_ed And T_uid="+UserId, new String[] {"Uid", "Uname", "Sid", "Sname", "Address", "Sphone", "Star","Mid", "Mname", "Price"});
+	                    			tmp=db.SelectTable2("Select Uid, Uname, Sid, Sname, Address, Sphone, Star, Mid, Mname, Price from Store, User, new_Menu, new_Recommend, Usertrack Where Sid=Ssid And Uid=R_uid And R_mid=Mid And Uid=Uid_ed And T_uid="+UserId+" Order by Rtime DESC", new String[] {"Uid", "Uname", "Sid", "Sname", "Address", "Sphone", "Star","Mid", "Mname", "Price"});
 	                    		}
 	                    		if(tmp!=null) {
 	                    			json_write.put("check", true);
@@ -513,23 +521,19 @@ public class eatwhat {
 	                    		
 	                    		if(isComment) {
 	                    			if(db.executeSql("UPDATE Sevaevaluate SET Evaluation=\""+Evaluation+"\", Escore="+Escore+" Where S_sid="+nowStoreId+" And S_uid="+UserId)) {
-	                    				System.out.println("成功: UPDATE Sevaevaluate SET Evaluation=\""+Evaluation+"\", Escore="+Escore+" Where S_sid="+nowStoreId+" And S_uid="+UserId);
 	                    				json_write.put("check", true);
 		                				json_write.put("data", "評論已修改");
 	                    			}else {
 	                    				json_write.put("check", false);
 		                    			json_write.put("data", "評論修改失敗");
-		                    			System.out.println("失敗: UPDATE Sevaevaluate SET Evaluation=\""+Evaluation+"\", Escore="+Escore+" Where S_sid="+nowStoreId+" And S_uid="+UserId);
 	                    			}
 	                    		}else {
 	                    			if(db.executeSql("Insert into Sevaevaluate(S_sid, S_uid, Evaluation, Escore) Values ("+nowStoreId+", "+UserId+", \""+Evaluation+"\", "+Escore+")")) {
 		                    			json_write.put("check", true);
 		                				json_write.put("data", "評論已新增");
-		                				System.out.println("成功: Insert into Sevaevaluate(S_sid, S_uid, Evaluation, Escore) Values ("+nowStoreId+", "+UserId+", \""+Evaluation+"\", "+Escore+")");
 		                    		}else {
 		                    			json_write.put("check", false);
 		                    			json_write.put("data", "評論新增失敗");
-		                    			System.out.println("失敗: Insert into Sevaevaluate(S_sid, S_uid, Evaluation, Escore) Values ("+nowStoreId+", "+UserId+", \""+Evaluation+"\", "+Escore+")");
 		                    		}                   			
 	                    		}
 	                    	}else if(x.equals("Recommend")) {
@@ -574,7 +578,8 @@ public class eatwhat {
 	                    		}
 	                    	}else if(x.equals("Content")) {
 	                    		int idx=json_read.getInt("idx");
-	                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Sname, Address, Sphone, Star, Mid, Mname, Price from Utal, Store, new_Menu Where Uid="+UserId+" And U_mid=Mid And Sid=Ssid And Score>=0.5 Order by Score DESC limit "+idx+",50", new String[] {"Sid", "Sname", "Address", "Sphone", "Star", "Mid", "Mname", "Price"});
+	                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Sname, Address, Sphone, Star, Mid, Mname, Price, CAST(Score*100 as signed) as score from Utal, Store, new_Menu Where Uid="+UserId+" And U_mid=Mid And Sid=Ssid And Score>=0.5 Order by Score DESC limit "+idx+",50", new String[] {"Sid", "Sname", "Address", "Sphone", "Star", "Mid", "Mname", "Price", "score"});
+	                    		//ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Sid, Sname, Address, Sphone, Star, Mid, Mname, Price from Utal, Store, new_Menu Where Uid="+UserId+" And U_mid=Mid And Sid=Ssid And Score>=0.5 Order by Score DESC limit "+idx+",50", new String[] {"Sid", "Sname", "Address", "Sphone", "Star", "Mid", "Mname", "Price"});
 	                    		
 	                    		if(tmp!=null) {
 	                    			json_write.put("check", true);
@@ -591,19 +596,38 @@ public class eatwhat {
                     				json_write.put("check", false);
                     				json_write.put("data", "紀錄失敗");
                     			}
+                    		}else if(x.equals("feedback")) {
+                    			String op=json_read.getString("feedback");
+                    			if(db.executeSql("Insert into Feedback(Opinion, F_uid) Values(\""+op+"\", "+UserId+")")) {
+                    				json_write.put("check", true);
+                    			}else {
+                    				json_write.put("check", false);
+                    				json_write.put("data", "傳送失敗");
+                    			}
+                    	    }else if(x.equals("useLog")) { //需定期匯出備份
+                    	    	int id=json_read.getInt("Fid");
+                    	    	db.executeSql("Insert into useLog(L_uid, L_fid) Values("+UserId+", "+id+")");
+                    	    	isSend=false;
+                    		}else if(x.equals("eatLog")) { //需定期匯出備份
+                    			int id=json_read.getInt("Fid");
+                    	    	db.executeSql("Insert into eatLog(L_uid, L_fid) Values("+UserId+", "+id+")");
+                    	    	isSend=false;
                     		}else if(x.equals("close")) {
-	                    		System.out.println("正常關閉: "+UserId);
+	                    		//System.out.println("正常關閉: "+UserId);
 	                    		break;
 	                    	}
-	                    	bw.write(json_write+"\n");
-	                		bw.flush();
+	                    	if(isSend) {
+	                    		bw.write(json_write+"\n");
+	                    		bw.flush();
+	                    	}
+	                    	isSend=true;
                     	} else {
-                    		System.out.println("null移除: "+UserId);
+                    		//System.out.println("null移除: "+UserId);
                     		break;
                     	}
                     }
                 } catch(SocketTimeoutException e) {
-                	System.out.println("超時移除: "+UserId);
+                	//System.out.println("超時移除: "+UserId);
                 	json_write.put("data", "timeout");
                 	try {
 						bw.write(json_write+"\n");
@@ -613,7 +637,7 @@ public class eatwhat {
 						e1.printStackTrace();
 					}
             	} catch (SocketException e) {
-                    e.printStackTrace();
+                    if(!e.toString().contains("Connection reset")) e.printStackTrace();
                 } catch (Exception e) {
                 	e.printStackTrace();
                 } finally {
@@ -686,7 +710,7 @@ public class eatwhat {
             	SimpleDateFormat sdFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss");
             	Date date = new Date();
             	String strDate = sdFormat.format(date);
-            	System.out.println(strDate);
+            	//System.out.println(strDate);
             	return strDate;
             }
         });
