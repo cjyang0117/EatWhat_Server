@@ -39,31 +39,56 @@ public class eatwhat {
                 public void run() {
                 	BufferedReader cmd=new BufferedReader(new InputStreamReader(System.in));
                     String str;
+                    System.out.println("*********************************"); 
+            		System.out.println("**     <<EatWhat  Server>>     **"); 
+            		System.out.println("*********************************"); 
+            		System.out.println("**    0.剔除 1.人數 2.結束     **"); 
+            		//System.out.println("**  4. 修改   5.瀏覽    6.結束 **"); 
+            		System.out.println("*********************************"); 
                 	while (true){
-                    	try {
-							str = cmd.readLine();
-							int res = Integer.parseInt(str);
-							switch(res) {
-								case 0:
-									/*System.out.println("請輸入剔除編號:");
-									str = cmd.readLine();
-									socketlist.get(Integer.parseInt(str)).close();
-		                            socketlist.remove(Integer.parseInt(str));*/
-		                            
-									break;
-								case 1:
-									DB db=new DB();
-									db.executeSql("Update User set Online=false");
-									System.exit(0);
-									break;
-								case 2:
-									System.out.println("目前連線數"+socketlist.size());
-									break;
-							}
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} 
+                		System.out.print("\r\n請輸入指令編號: ");
+                		int res;
+                		try {
+							str = cmd.readLine(); System.out.println();
+							res = Integer.parseInt(str);
+						} catch (Exception e) {
+							res=-1;
+							/*System.out.println("*********************************"); 
+	                		System.out.println("**     <<EatWhat  Server>>     **"); 
+	                		System.out.println("*********************************"); 
+	                		System.out.println("**    0.剔除 1.人數 2.結束     **"); 
+	                		//System.out.println("**  4. 修改   5.瀏覽    6.結束 **"); 
+	                		System.out.println("*********************************");
+							this.run();*/
+						}
+                		
+                    	switch(res) {
+							case 0:
+								System.out.println("維修中");
+								/*System.out.println("請輸入剔除編號:");
+								str = cmd.readLine();
+								socketlist.get(Integer.parseInt(str)).close();
+	                            socketlist.remove(Integer.parseInt(str));*/
+	                            
+								break;
+							case 1:
+								System.out.println("目前連線數: "+socketlist.size());
+								break;
+							case 2:
+								System.out.println("伺服器關閉中......");
+								DB db=new DB();
+								db.executeSql("Update User set Online=false");
+								System.exit(0);
+								break;
+							default :
+								System.out.println("*********************************"); 
+		                		System.out.println("**     <<EatWhat  Server>>     **"); 
+		                		System.out.println("*********************************"); 
+		                		System.out.println("**    0.剔除 1.人數 2.結束     **"); 
+		                		//System.out.println("**  4. 修改   5.瀏覽    6.結束 **"); 
+		                		System.out.println("*********************************"); 
+								break;
+                    	}
                     }
                 }
             }).start();
