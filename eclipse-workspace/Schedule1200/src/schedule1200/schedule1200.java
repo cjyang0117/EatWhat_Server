@@ -16,14 +16,14 @@ public class schedule1200 {
 		
 		
 		try {
-			/*DB db =new DB();
+			DB db =new DB();
 			FileOutputStream out;
 			out=new FileOutputStream(new File("/eatwhat1/scheduleLog.txt"), true);
 			String s=getDateTime()+"\r\n";
-			if(db.executeSql("Delete from new_Recommend Where DATEDIFF(NOW(), Rtime)>=2")) {
-				s+="OK----->Delete from new_Recommend Where DATEDIFF(NOW(), Rtime)>=2\r\n";
+			if(db.executeSql("Delete from new_Recommend Where DATEDIFF(NOW(), Rtime)>=15")) {
+				s+="OK----->Delete from new_Recommend Where DATEDIFF(NOW(), Rtime)>=15\r\n";
 			}else {
-				s+="Error----->Delete from new_Recommend Where DATEDIFF(NOW(), Rtime)>=2\r\n";
+				s+="Error----->Delete from new_Recommend Where DATEDIFF(NOW(), Rtime)>=15\r\n";
 			}
 			String n[]= {"Count"};
 			ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select count(Sid) as Count from Store", n);
@@ -40,7 +40,7 @@ public class schedule1200 {
 				s+="Error----->Select count(Sid) as Count from Store\r\n";
 			}
 			out.write(s.getBytes());
-			out.close();*/
+			out.close();
 			
 			/*BufferedReader cmd=new BufferedReader(new InputStreamReader(System.in));
 			int beg,end;
@@ -121,7 +121,7 @@ public class schedule1200 {
 			out.close();
 			if(cpt) System.out.println("新增完成");*/
 			
-			BufferedReader cmd=new BufferedReader(new InputStreamReader(System.in));
+			/*BufferedReader cmd=new BufferedReader(new InputStreamReader(System.in));
 			int beg,end;
 			boolean cpt=false;
 			System.out.println("請輸入檔案開始編號:");
@@ -167,7 +167,7 @@ public class schedule1200 {
 						break;
 					}
 				}
-			}
+			}*/
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
