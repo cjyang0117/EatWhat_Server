@@ -53,13 +53,6 @@ public class eatwhat {
 							res = Integer.parseInt(str);
 						} catch (Exception e) {
 							res=-1;
-							/*System.out.println("*********************************"); 
-	                		System.out.println("**     <<EatWhat  Server>>     **"); 
-	                		System.out.println("*********************************"); 
-	                		System.out.println("**    0.剔除 1.人數 2.結束     **"); 
-	                		//System.out.println("**  4. 修改   5.瀏覽    6.結束 **"); 
-	                		System.out.println("*********************************");
-							this.run();*/
 						}
                 		
                     	switch(res) {
@@ -241,7 +234,7 @@ public class eatwhat {
 	                    	}else if(x.equals("login")) {    //登入放在這裡 會不會被客戶端修改程式碼入侵             
 	                    		String a=json_read.getString("Account");
 	                    		String p=json_read.getString("Password");
-	                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Uid, Password, Online from User Where Account=\""+a+"\"", new String[] {"Uid", "Password", "Online"});
+	                    		ArrayList<ArrayList<String>> tmp=db.SelectTable2("Select Uid, Password from User Where Account=\""+a+"\"", new String[] {"Uid", "Password"});
 	                    		if(db.SelectNum()==0) {                  			
 	                    			json_write.put("Checklogin", false);
 	                    			json_write.put("data", "帳號或密碼錯誤");
@@ -250,25 +243,17 @@ public class eatwhat {
 	                    			break;
 	                    		}else {
 	                    			if(p.equals(tmp.get(0).get(1))) {
-	                    				if(Integer.parseInt(tmp.get(0).get(2))==0) {
-		                        			json_write.put("Checklogin", true);   
-		                        			UserId=tmp.get(0).get(0); //if(Integer.parseInt(UserId)==246) socket.setSoTimeout(10*1000);
-		                        			db.executeSql("Update User set Online=true Where Uid="+UserId);
-		                        			db.executeSql("Update User set Actived=true Where Uid="+UserId);
-		                        			
-		                        			db.SelectTable2("Select R_uid from new_Recommend Where DATEDIFF(NOW(), Rtime)=0 And R_uid="+UserId, new String[] {"R_uid"});
-		                        			recmdTime=db.SelectNum();
-		                        			json_write.put("recmdTime", recmdTime);
-		                        			json_write.put("cnum", Integer.parseInt(db.SelectTable2("Select COUNT(Uid) as c from Utal where Uid="+UserId+" And Score>=0.5", new String[] {"c"}).get(0).get(0).toString()));
-		                        			json_write.put("mail", db.SelectTable2("Select Mail from User Where Uid="+UserId, new String[] {"Mail"}).get(0).get(0).toString());
-		                        			json_write.put("name", db.SelectTable2("Select Uname from User Where Uid="+UserId, new String[] {"Uname"}).get(0).get(0).toString());
-	                    				}else {
-	                    					json_write.put("Checklogin", false);
-	                    					json_write.put("data", "帳號已登入");
-	                    					//System.out.println("帳號已登入");
-	                    					bw.write(json_write+"\n"); bw.flush();
-	                    					break;
-	                    				}
+	                        			json_write.put("Checklogin", true);   
+	                        			UserId=tmp.get(0).get(0); //if(Integer.parseInt(UserId)==246) socket.setSoTimeout(10*1000);
+	                        			db.executeSql("Update User set Online=true Where Uid="+UserId);
+	                        			db.executeSql("Update User set Actived=true Where Uid="+UserId);
+	                        			
+	                        			db.SelectTable2("Select R_uid from new_Recommend Where DATEDIFF(NOW(), Rtime)=0 And R_uid="+UserId, new String[] {"R_uid"});
+	                        			recmdTime=db.SelectNum();
+	                        			json_write.put("recmdTime", recmdTime);
+	                        			json_write.put("cnum", Integer.parseInt(db.SelectTable2("Select COUNT(Uid) as c from Utal where Uid="+UserId+" And Score>=0.5", new String[] {"c"}).get(0).get(0).toString()));
+	                        			json_write.put("mail", db.SelectTable2("Select Mail from User Where Uid="+UserId, new String[] {"Mail"}).get(0).get(0).toString());
+	                        			json_write.put("name", db.SelectTable2("Select Uname from User Where Uid="+UserId, new String[] {"Uname"}).get(0).get(0).toString());
 	                    			}else {
 	                        			json_write.put("Checklogin", false);
 	                        			json_write.put("data", "帳號或密碼錯誤");
